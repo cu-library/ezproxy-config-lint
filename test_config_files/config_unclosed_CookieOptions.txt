@@ -1,0 +1,17 @@
+Option DomainCookieOnly
+Title Title One
+URL https://urlone.com
+
+HTTPMethod POST
+Option DomainCookieOnly
+Title Title Two
+URL https://urltwo.com
+
+Option CookiePassThrough
+Title Title Three
+URL https://urlthree.com
+
+HTTPMethod POST
+Option CookiePassThrough
+Title Title Four
+URL https://urlfour.com

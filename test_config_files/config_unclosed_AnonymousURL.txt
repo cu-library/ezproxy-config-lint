@@ -1,0 +1,34 @@
+AnonymousURL +https://api.taylorandfrancis.com/*
+AnonymousURL +https://api.taylorfrancis.com/*
+AnonymousURL +https://events.taylorandfrancis.com/*
+AnonymousURL +https://secure.taylorandfrancis.com/*
+AnonymousURL +https://secure.taylorfrancis.com/*
+Title Taylor Francis eBooks (updated 20210702)
+HTTPHeader -request -process authtoken
+HTTPHeader -request -process Origin
+URL https://www.taylorfrancis.com
+HJ www.taylorfrancis.com
+HJ https://taylorfrancis.com
+HJ taylorfrancis.com
+HJ https://api.taylorandfrancis.com
+HJ api.taylorandfrancis.com
+HJ https://api.taylorfrancis.com
+HJ api.taylorfrancis.com
+HJ https://events.taylorandfrancis.com
+HJ events.taylorandfrancis.com
+HJ https://accounts.taylorfrancis.com
+HJ accounts.taylorfrancis.com
+HJ https://secure.taylorfrancis.com
+HJ secure.taylorfrancis.com
+HJ https://secure.taylorandfrancis.com
+HJ secure.taylorandfrancis.com
+DJ taylorandfrancis.com
+DJ taylorfrancis.com
+NeverProxy s3-euw1-ap-pe-ws4-capi2-distribution-p.s3-eu-west-1.amazonaws.com
+Find http-equiv="Content-Security-Policy"
+Replace http-equiv="X-Content-Security-Policy"
+Find "url":"https:\/\/taylorfrancis.com\/
+Replace "url":"https:\/\/^staylorfrancis.com^\/
+NeverProxy api.google.com
+NeverProxy fonts.google.com
+NeverProxy googletagmanager.com
