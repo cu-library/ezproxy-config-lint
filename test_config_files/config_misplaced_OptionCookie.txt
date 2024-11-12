@@ -1,0 +1,14 @@
+Title Title One
+URL https://urlone.com
+Option Cookie
+
+Title Title Two
+Option Cookie
+URL https://urltwo.com
+
+Option DomainCookieOnly
+Title Title Three
+URL https://urlthree.com
+Find "http:\/\/somehost.somedb.com\/
+Option Cookie
+Replace "http:\/\/^Psomehost.somedb.com^\/
