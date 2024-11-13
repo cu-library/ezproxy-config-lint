@@ -171,6 +171,7 @@ const (
 )
 
 var LabelToDirective = map[string]Directive{
+	"A":                               AutoLoginIP,
 	"AddUserHeader":                   AddUserHeader,
 	"AllowIP":                         AllowIP,
 	"AllowVars":                       AllowVars,
@@ -196,6 +197,7 @@ var LabelToDirective = map[string]Directive{
 	"DNS":                             DNS,
 	"Domain":                          Domain,
 	"DomainJavaScript":                DomainJavaScript,
+	"E":                               ExcludeIP,
 	"EBLSecret":                       EBLSecret,
 	"ebrarySite":                      EbrarySite,
 	"EncryptVar":                      EncryptVar,
@@ -217,6 +219,7 @@ var LabelToDirective = map[string]Directive{
 	"HostJavaScript":                  HostJavaScript,
 	"HTTPHeader":                      HTTPHeader,
 	"HTTPMethod":                      HTTPMethod,
+	"I":                               IncludeIP,
 	"Identifier":                      Identifier,
 	"IncludeFile":                     IncludeFile,
 	"IncludeIP":                       IncludeIP,
