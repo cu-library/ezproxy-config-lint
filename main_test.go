@@ -10,20 +10,20 @@ import (
 )
 
 func TestLineEndingInSpace(t *testing.T) {
-	state := State{}
+	linter := Linter{Whitespace: true}
 	expected := []string{"Line ends in a space or tab character"}
-	messages := state.ProcessLine("Title hello     ")
+	messages := linter.ProcessLine("Title hello     ")
 	if !reflect.DeepEqual(messages, expected) {
 		t.Fatalf("incorrect messages %v instead of %v", messages, expected)
 	}
 }
 
 func TestMissingURL(t *testing.T) {
-	state := State{
+	linter := Linter{State: State{
 		Title: "A Title",
-	}
+	}}
 	expected := []string{"Stanza \"A Title\" has Title but no URL"}
-	messages := state.ProcessLine("")
+	messages := linter.ProcessLine("")
 	if !reflect.DeepEqual(messages, expected) {
 		t.Fatalf("incorrect messages %v instead of %v", messages, expected)
 	}

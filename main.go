@@ -26,9 +26,28 @@ import (
 // A version flag, which should be overwritten when building using ldflags.
 var version = "devel"
 
+type State struct {
+	AnonymousURLNeedsClosing bool
+	CookieOptionNeedsClosing bool
+	LastLineEmpty            bool
+	Previous                 Directive
+	OCLCTitle                string
+	Source                   string
+	Title                    string
+	URL                      string
+}
+
+type Linter struct {
+	Annotate   bool
+	Verbose    bool
+	Whitespace bool
+	State      State
+}
+
 func main() {
 	annotate := flag.Bool("annotate", false, "Print all lines, not just lines that create warnings")
 	verbose := flag.Bool("verbose", false, "Print internal state before each line is processed")
+	whitespace := flag.Bool("whitespace", false, "Report on trailing space or tab characters")
 	flag.Usage = func() {
 		fmt.Fprint(flag.CommandLine.Output(), "ezproxy-config-lint: Lint config files for EZproxy\n")
 		fmt.Fprintf(flag.CommandLine.Output(), "Version %v\n", version)
@@ -42,11 +61,18 @@ func main() {
 	// Set the logger to not include timestamp.
 	log.SetFlags(0)
 
+	// Create a Linter struct to hold configuration options.
+	linter := &Linter{
+		Annotate:   *annotate,
+		Verbose:    *verbose,
+		Whitespace: *whitespace,
+	}
+
 	// Final exit code, after processing all files.
 	exitCode := 0
 
 	for _, arg := range flag.Args() {
-		fileExitCode, err := processFile(arg, *annotate, *verbose)
+		fileExitCode, err := linter.processFile(arg)
 		if err != nil {
 			log.Fatalf("Error processing %v: %v", arg, err)
 		}
@@ -58,18 +84,7 @@ func main() {
 	os.Exit(exitCode)
 }
 
-type State struct {
-	AnonymousURLNeedsClosing bool
-	CookieOptionNeedsClosing bool
-	LastLineEmpty            bool
-	Previous                 Directive
-	OCLCTitle                string
-	Source                   string
-	Title                    string
-	URL                      string
-}
-
-func processFile(filename string, annotate, verbose bool) (int, error) {
+func (l *Linter) processFile(filename string) (int, error) {
 	f, err := os.Open(filename)
 	if err != nil {
 		return 1, err
@@ -91,7 +106,7 @@ func processFile(filename string, annotate, verbose bool) (int, error) {
 	lineNum := 0
 
 	// Store information about each stanza.
-	state := State{}
+	l.State = State{}
 
 	// What exit code should be used.
 	exit := 0
@@ -115,18 +130,18 @@ func processFile(filename string, annotate, verbose bool) (int, error) {
 			line = scanner.Text()
 			// Increment the line number.
 			lineNum++
-		} else if state.LastLineEmpty {
+		} else if l.State.LastLineEmpty {
 			break
 		}
 
-		if verbose {
-			fmt.Printf("%#v\n", state)
+		if l.Verbose {
+			fmt.Printf("%#v\n", l.State)
 		}
 
-		warnings := state.ProcessLine(line)
+		warnings := l.ProcessLine(line)
 		if len(warnings) > 0 {
 			exit = 2
-			if state.LastLineEmpty {
+			if l.State.LastLineEmpty {
 				for range len(strconv.Itoa(lineNum)) {
 					fmt.Printf(" ")
 				}
@@ -137,7 +152,7 @@ func processFile(filename string, annotate, verbose bool) (int, error) {
 			} else {
 				fmt.Printf("%v: %v %v\n", lineNum, line, yellow(fmt.Sprintf("!!! %v", strings.Join(warnings, ", "))))
 			}
-		} else if annotate && more {
+		} else if l.Annotate && more {
 			fmt.Printf("%v: %v\n", lineNum, line)
 		}
 	}
@@ -149,9 +164,9 @@ func processFile(filename string, annotate, verbose bool) (int, error) {
 	return exit, nil
 }
 
-func (s *State) ProcessLine(line string) (m []string) {
+func (l *Linter) ProcessLine(line string) (m []string) {
 	// Does the line end in a space or tab character?
-	if TrailingSpaceOrTabCheck(line) {
+	if l.Whitespace && TrailingSpaceOrTabCheck(line) {
 		m = append(m, "Line ends in a space or tab character")
 	}
 
@@ -161,21 +176,23 @@ func (s *State) ProcessLine(line string) (m []string) {
 
 	// Is the line empty?
 	if line == "" {
-		if s.Title != "" && s.URL == "" {
-			m = append(m, fmt.Sprintf("Stanza \"%v\" has Title but no URL", s.Title))
+		if l.State.Title != "" && l.State.URL == "" {
+			m = append(m, fmt.Sprintf("Stanza \"%v\" has Title but no URL", l.State.Title))
 		}
-		if s.AnonymousURLNeedsClosing {
-			m = append(m, fmt.Sprintf("Stanza \"%v\" has AnonymousURL but doesn't have a corresponding \"AnonymousURL -*\" line at the end of the stanza", s.Title))
+		if l.State.AnonymousURLNeedsClosing {
+			m = append(m, fmt.Sprintf("Stanza \"%v\" has AnonymousURL but doesn't have a corresponding \"AnonymousURL -*\" "+
+				"line at the end of the stanza", l.State.Title))
 		}
-		if s.CookieOptionNeedsClosing {
-			m = append(m, fmt.Sprintf("Stanza \"%v\" has \"Option DomainCookieOnly\" or \"Option CookiePassthrough\" but doesn't have a corresponding \"Option Cookie\" line at the end of the stanza", s.Title))
+		if l.State.CookieOptionNeedsClosing {
+			m = append(m, fmt.Sprintf("Stanza \"%v\" has \"Option DomainCookieOnly\" or \"Option CookiePassthrough\" "+
+				"but doesn't have a corresponding \"Option Cookie\" line at the end of the stanza", l.State.Title))
 		}
 		// Reset the stanza state.
-		*s = State{LastLineEmpty: true}
+		l.State = State{LastLineEmpty: true}
 
 		return m
 	} else {
-		s.LastLineEmpty = false
+		l.State.LastLineEmpty = false
 	}
 
 	// Is the line a comment?
@@ -185,8 +202,8 @@ func (s *State) ProcessLine(line string) (m []string) {
 			if err != nil {
 				m = append(m, fmt.Sprintf("Error processsing Source line: %v", err))
 			} else {
-				s.Source = source
-				s.OCLCTitle = oclcTitle
+				l.State.Source = source
+				l.State.OCLCTitle = oclcTitle
 			}
 		}
 		return m
@@ -216,97 +233,97 @@ func (s *State) ProcessLine(line string) (m []string) {
 	// Check each directive.
 	switch directive {
 	case OptionCookie:
-		if s.CookieOptionNeedsClosing {
-			switch s.Previous {
+		if l.State.CookieOptionNeedsClosing {
+			switch l.State.Previous {
 			case URL, Host, HostJavaScript, Domain, DomainJavaScript, Replace:
 			case AnonymousURL:
-				if s.AnonymousURLNeedsClosing {
+				if l.State.AnonymousURLNeedsClosing {
 					m = append(m, "Option Cookie directive is out of order")
 				}
 			default:
 				m = append(m, "Option Cookie directive is out of order")
 			}
-			s.CookieOptionNeedsClosing = false
+			l.State.CookieOptionNeedsClosing = false
 		} else {
-			switch s.Previous {
+			switch l.State.Previous {
 			case Undefined, HTTPMethod:
 			default:
 				m = append(m, "Option Cookie directive is out of order")
 			}
 		}
 	case OptionCookiePassThrough:
-		switch s.Previous {
+		switch l.State.Previous {
 		case Undefined, Group, HTTPMethod:
 		default:
 			m = append(m, "Option CookiePassThrough directive is out of order")
 		}
-		s.CookieOptionNeedsClosing = true
+		l.State.CookieOptionNeedsClosing = true
 	case OptionDomainCookieOnly:
-		switch s.Previous {
+		switch l.State.Previous {
 		case Undefined, Group, HTTPMethod:
 		default:
 			m = append(m, "Option DomainCookieOnly directive is out of order")
 		}
-		s.CookieOptionNeedsClosing = true
+		l.State.CookieOptionNeedsClosing = true
 	case AnonymousURL:
-		if s.AnonymousURLNeedsClosing {
+		if l.State.AnonymousURLNeedsClosing {
 			if strings.TrimPrefix(line, "AnonymousURL ") == "-*" {
-				switch s.Previous {
+				switch l.State.Previous {
 				case URL, Host, HostJavaScript, Domain, DomainJavaScript, Replace:
 				default:
 					m = append(m, "AnonymousURL directive is out of order")
 				}
-				s.AnonymousURLNeedsClosing = false
+				l.State.AnonymousURLNeedsClosing = false
 			} else {
-				switch s.Previous {
+				switch l.State.Previous {
 				case AnonymousURL:
 				default:
 					m = append(m, "AnonymousURL directive is out of order")
 				}
 			}
 		} else {
-			switch s.Previous {
+			switch l.State.Previous {
 			case Undefined, Group, HTTPMethod, OptionCookie, OptionCookiePassThrough, OptionDomainCookieOnly, ProxyHostnameEdit:
 			default:
 				m = append(m, "AnonymousURL directive is out of order")
 			}
-			s.AnonymousURLNeedsClosing = true
+			l.State.AnonymousURLNeedsClosing = true
 		}
 	case Title:
-		if s.Title != "" {
+		if l.State.Title != "" {
 			m = append(m, "Duplicate Title directive")
 		}
-		s.Title = TrimTitlePrefix(line)
-		if s.OCLCTitle != "" && s.Title != s.OCLCTitle {
+		l.State.Title = TrimTitlePrefix(line)
+		if l.State.OCLCTitle != "" && l.State.Title != l.State.OCLCTitle {
 			m = append(m, "Source title doesn't match, you might need to update this stanza.")
 		}
-		switch s.Previous {
+		switch l.State.Previous {
 		case Undefined, Group, HTTPMethod, OptionCookiePassThrough, OptionDomainCookieOnly, ProxyHostnameEdit:
 		case OptionCookie:
-			if !s.CookieOptionNeedsClosing {
+			if !l.State.CookieOptionNeedsClosing {
 				m = append(m, "Title directive is out of order")
 			}
 		case AnonymousURL:
-			if !s.AnonymousURLNeedsClosing {
+			if !l.State.AnonymousURLNeedsClosing {
 				m = append(m, "Title directive is out of order")
 			}
 		default:
 			m = append(m, "Title directive is out of order")
 		}
 	case URL:
-		if s.Title == "" {
+		if l.State.Title == "" {
 			m = append(m, "URL directive is before Title directive")
 		}
-		if s.URL != "" {
+		if l.State.URL != "" {
 			m = append(m, "Duplicate URL directive")
 		}
-		s.URL = TrimURLPrefix(line)
-		switch s.Previous {
+		l.State.URL = TrimURLPrefix(line)
+		switch l.State.Previous {
 		case Title, HTTPHeader, MimeFilter:
 		default:
 			m = append(m, "URL directive is out of order")
 		}
-		parsedURL, err := url.Parse(s.URL)
+		parsedURL, err := url.Parse(l.State.URL)
 		if err != nil {
 			m = append(m, "Unable to prase URL")
 		}
@@ -316,7 +333,7 @@ func (s *State) ProcessLine(line string) (m []string) {
 			}
 		}
 	}
-	s.Previous = directive
+	l.State.Previous = directive
 	return m
 }
 
