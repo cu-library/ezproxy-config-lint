@@ -310,7 +310,7 @@ func (l *Linter) ProcessLine(line string) (m []string) {
 			m = append(m, "Source title doesn't match, you might need to update this stanza.")
 		}
 		switch l.State.Previous {
-		case Undefined, Group, HTTPMethod, OptionCookiePassThrough, OptionDomainCookieOnly, ProxyHostnameEdit:
+		case Undefined, Group, HTTPMethod, OptionCookiePassThrough, OptionDomainCookieOnly, ProxyHostnameEdit, OptionEbraryUnencodedTokens:
 		case OptionCookie:
 			if !l.State.CookieOptionNeedsClosing {
 				m = append(m, "Title directive is out of order")
@@ -331,7 +331,7 @@ func (l *Linter) ProcessLine(line string) (m []string) {
 		}
 		l.State.URL = TrimURLPrefix(line)
 		switch l.State.Previous {
-		case Title, HTTPHeader, MimeFilter:
+		case Title, HTTPHeader, MimeFilter, EbrarySite:
 		default:
 			m = append(m, "URL directive is out of order")
 		}

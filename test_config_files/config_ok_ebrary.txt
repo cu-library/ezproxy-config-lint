@@ -1,0 +1,6 @@
+Option ebraryUnencodedTokens
+Title ebrary (Added 20230829)
+ebrarySite [sitename]
+URL https://site.ebrary.com/lib/[sitename]
+Host site.ebrary.com
+NeverProxy *.ebrary.com
