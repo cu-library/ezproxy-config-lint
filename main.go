@@ -27,14 +27,16 @@ import (
 var version = "devel"
 
 type State struct {
-	AnonymousURLNeedsClosing bool
-	CookieOptionNeedsClosing bool
-	LastLineEmpty            bool
-	Previous                 Directive
-	OCLCTitle                string
-	Source                   string
-	Title                    string
-	URL                      string
+	AnonymousURLNeedsClosing  bool
+	CookieOptionNeedsClosing  bool
+	InMultiline               bool
+	LastLineEmpty             bool
+	OCLCTitle                 string
+	Previous                  Directive
+	PreviousMultilineSegments string
+	Source                    string
+	Title                     string
+	URL                       string
 }
 
 type Linter struct {
@@ -207,6 +209,16 @@ func (l *Linter) ProcessLine(line string) (m []string) {
 			}
 		}
 		return m
+	}
+
+	// Is the line part of a multiline string?
+	if strings.HasSuffix(line, "\\") {
+		l.State.PreviousMultilineSegments += strings.TrimSuffix(line, "\\")
+		l.State.InMultiline = true
+		return m
+	} else if l.State.InMultiline {
+		line = l.State.PreviousMultilineSegments + line
+		l.State.PreviousMultilineSegments = ""
 	}
 
 	// Line isn't a comment or empty.

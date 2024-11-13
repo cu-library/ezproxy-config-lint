@@ -6,6 +6,7 @@ package main
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -48,5 +49,23 @@ func TestTrailingSpaceOrTabCheck(t *testing.T) {
 		if problem != tt.expected {
 			t.Fatalf("TrailingSpaceOrTabCheck() fails on \"%v\", wanted %v, got %v.\n", tt.line, tt.expected, problem)
 		}
+	}
+}
+
+func TestMultilineDirective(t *testing.T) {
+	linter := Linter{}
+	multiline := `ShibbolethMetadata \
+                      -EntityID=EZproxyEntityID \
+                      -File=MetadataFile \
+                      -SignResponse=false -SignAssertion=true -EncryptAssertion=false \
+                      -Cert=EZproxyCertNumber`
+	for _, line := range strings.Split(multiline, "\n") {
+		messages := linter.ProcessLine(line)
+		if len(messages) != 0 {
+			t.Fatalf("Multiline directive was not properly processed: %v", messages)
+		}
+	}
+	if linter.State.Previous != ShibbolethMetadata {
+		t.Fatalf("Processing multiline directive did not find the correct Directive")
 	}
 }

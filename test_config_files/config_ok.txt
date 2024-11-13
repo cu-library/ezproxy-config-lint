@@ -1,2 +1,8 @@
+ShibbolethMetadata \
+    -EntityID=EZproxyEntityID \
+    -File=MetadataFile \
+    -SignResponse=false -SignAssertion=true -EncryptAssertion=false \
+    -Cert=EZproxyCertNumber
+
 Title Google
 URL https://google.com

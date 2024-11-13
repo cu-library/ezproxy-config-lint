@@ -145,10 +145,11 @@ const (
 	RemoteTimeout
 	Replace
 	RunAs
-	ShibbolethDisable
-	SkipPort
 	SPUEdit
 	SPUEditVar
+	ShibbolethDisable
+	ShibbolethMetadata
+	SkipPort
 	SQLiteTempDir
 	SSLCipherSuite
 	SSLHonorCipherOrder
@@ -317,6 +318,7 @@ var LabelToDirective = map[string]Directive{
 	"RemoteTimeout":                 RemoteTimeout,
 	"RunAs":                         RunAs,
 	"ShibbolethDisable":             ShibbolethDisable,
+	"ShibbolethMetadata":            ShibbolethMetadata,
 	"SkipPort":                      SkipPort,
 	"SPUEdit":                       SPUEdit,
 	"SPUEditVar":                    SPUEditVar,

@@ -146,32 +146,33 @@ func _() {
 	_ = x[RemoteTimeout-135]
 	_ = x[Replace-136]
 	_ = x[RunAs-137]
-	_ = x[ShibbolethDisable-138]
-	_ = x[SkipPort-139]
-	_ = x[SPUEdit-140]
-	_ = x[SPUEditVar-141]
-	_ = x[SQLiteTempDir-142]
-	_ = x[SSLCipherSuite-143]
-	_ = x[SSLHonorCipherOrder-144]
-	_ = x[SSLOpenSSLConfCmd-145]
-	_ = x[SSOUsername-146]
-	_ = x[Title-147]
-	_ = x[TokenKey-148]
-	_ = x[TokenSignatureKey-149]
-	_ = x[UMask-150]
-	_ = x[URL-151]
-	_ = x[URLAppendEncoded-152]
-	_ = x[URLRedirect-153]
-	_ = x[URLRedirectAppend-154]
-	_ = x[URLRedirectAppendEncoded-155]
-	_ = x[UsageLimit-156]
-	_ = x[Validate-157]
-	_ = x[XDebug-158]
+	_ = x[SPUEdit-138]
+	_ = x[SPUEditVar-139]
+	_ = x[ShibbolethDisable-140]
+	_ = x[ShibbolethMetadata-141]
+	_ = x[SkipPort-142]
+	_ = x[SQLiteTempDir-143]
+	_ = x[SSLCipherSuite-144]
+	_ = x[SSLHonorCipherOrder-145]
+	_ = x[SSLOpenSSLConfCmd-146]
+	_ = x[SSOUsername-147]
+	_ = x[Title-148]
+	_ = x[TokenKey-149]
+	_ = x[TokenSignatureKey-150]
+	_ = x[UMask-151]
+	_ = x[URL-152]
+	_ = x[URLAppendEncoded-153]
+	_ = x[URLRedirect-154]
+	_ = x[URLRedirectAppend-155]
+	_ = x[URLRedirectAppendEncoded-156]
+	_ = x[UsageLimit-157]
+	_ = x[Validate-158]
+	_ = x[XDebug-159]
 }
 
-const _Directive_name = "UndefinedAddUserHeaderAllowIPAllowVarsAnonymousURLAuditAuditPurgeAutoLoginIPAutoLoginIPBannerBinaryTimeoutBooks24x7SiteByteServeCASServiceURLCharsetClientTimeoutConnectWindowCookieCookieFilterDbVarDenyIfRequestHeaderDescriptionDNSDomainDomainJavaScriptEBLSecretebrarySiteEncryptVarExcludeIPExcludeIPBannerExtraLoginCookieFindFirstPortFormSelectFormSubmitFormVariableGartnerGroupHANameHAPeerHostHostJavaScriptHTTPHeaderHTTPMethodIdentifierIncludeFileIncludeIPInterfaceIntruderIPAttemptsIntruderLogIntruderUserAttemptsIntrusionAPILBPeerLocationLogFileLogFilterLogFormatLoginCookieDomainLoginCookieNameLoginMenuLoginPortLoginPortSSLLogSPUMaxConcurrentTransfersMaxLifetimeMaxSessionsMaxVirtualHostsMessagesFileMetaFindMimeFilterNameNeverProxyOption AcceptX-Forwarded-For.Option AllowWebSubdirectories.Option AnyDNSHostname.Option BlockCountryChange.Option Cookie.Option CookiePassThrough.Option CSRFToken.Option DisableSSL40bit.Option DisableSSL56bit.Option DisableSSLv2.Option DomainCookieOnly.Option ExcludeIPMenu.Option ForceHTTPSAdmin.Option ForceHTTPSLogin.Option ForceWildcardCertificate.Option HideEZproxy.Option HttpsHyphens.Option I choose to use Domain lines that threaten the security of my network.Option IgnoreWildcardCertificate.Option IPv6.Option LoginReplaceGroups.Option LogReferer.Option LogSAML.Option LogSession.Option LogSPUEdit.Option LogUser.Option MenuByGroups.Option MetaEZproxyRewriting.Option NoCookie.Option NoHideEZproxy.Option NoHttpsHyphens.Option NoMetaEZproxyRewriting.Option NoProxyFTP.Option NoUTF16.Option NoX-Forwarded-For.Option ProxyByHostname.Option ProxyFTP.Option RecordPeaks.Option RedirectUnknown.Option ReferInHostname.Option RelaxedRADIUS.Option RequireAuthenticate.Option SafariCookiePatch.Option StatusUser.Option TicketIgnoreExcludeIP.Option UnsafeRedirectUnknown.Option UsernameCaretN.Option UTF16.Option X-Forwarded-For.OverDriveSitePDFRefreshPDFRefreshPostPDFRefreshPrePidFileProxyProxyHostnameEditProxySSLRADIUSRetryRedirectSafeRefererRejectIPRemoteIPHeaderRemoteIPInternalProxyRemoteIPTrustedProxyRemoteTimeoutReplaceRunAsShibbolethDisableSkipPortSPUEditSPUEditVarSQLiteTempDirSSLCipherSuiteSSLHonorCipherOrderSSLOpenSSLConfCmdSSOUsernameTitleTokenKeyTokenSignatureKeyUMaskURLURLAppendEncodedURLRedirectURLRedirectAppendURLRedirectAppendEncodedUsageLimitValidateXDebug"
+const _Directive_name = "UndefinedAddUserHeaderAllowIPAllowVarsAnonymousURLAuditAuditPurgeAutoLoginIPAutoLoginIPBannerBinaryTimeoutBooks24x7SiteByteServeCASServiceURLCharsetClientTimeoutConnectWindowCookieCookieFilterDbVarDenyIfRequestHeaderDescriptionDNSDomainDomainJavaScriptEBLSecretebrarySiteEncryptVarExcludeIPExcludeIPBannerExtraLoginCookieFindFirstPortFormSelectFormSubmitFormVariableGartnerGroupHANameHAPeerHostHostJavaScriptHTTPHeaderHTTPMethodIdentifierIncludeFileIncludeIPInterfaceIntruderIPAttemptsIntruderLogIntruderUserAttemptsIntrusionAPILBPeerLocationLogFileLogFilterLogFormatLoginCookieDomainLoginCookieNameLoginMenuLoginPortLoginPortSSLLogSPUMaxConcurrentTransfersMaxLifetimeMaxSessionsMaxVirtualHostsMessagesFileMetaFindMimeFilterNameNeverProxyOption AcceptX-Forwarded-For.Option AllowWebSubdirectories.Option AnyDNSHostname.Option BlockCountryChange.Option Cookie.Option CookiePassThrough.Option CSRFToken.Option DisableSSL40bit.Option DisableSSL56bit.Option DisableSSLv2.Option DomainCookieOnly.Option ExcludeIPMenu.Option ForceHTTPSAdmin.Option ForceHTTPSLogin.Option ForceWildcardCertificate.Option HideEZproxy.Option HttpsHyphens.Option I choose to use Domain lines that threaten the security of my network.Option IgnoreWildcardCertificate.Option IPv6.Option LoginReplaceGroups.Option LogReferer.Option LogSAML.Option LogSession.Option LogSPUEdit.Option LogUser.Option MenuByGroups.Option MetaEZproxyRewriting.Option NoCookie.Option NoHideEZproxy.Option NoHttpsHyphens.Option NoMetaEZproxyRewriting.Option NoProxyFTP.Option NoUTF16.Option NoX-Forwarded-For.Option ProxyByHostname.Option ProxyFTP.Option RecordPeaks.Option RedirectUnknown.Option ReferInHostname.Option RelaxedRADIUS.Option RequireAuthenticate.Option SafariCookiePatch.Option StatusUser.Option TicketIgnoreExcludeIP.Option UnsafeRedirectUnknown.Option UsernameCaretN.Option UTF16.Option X-Forwarded-For.OverDriveSitePDFRefreshPDFRefreshPostPDFRefreshPrePidFileProxyProxyHostnameEditProxySSLRADIUSRetryRedirectSafeRefererRejectIPRemoteIPHeaderRemoteIPInternalProxyRemoteIPTrustedProxyRemoteTimeoutReplaceRunAsSPUEditSPUEditVarShibbolethDisableShibbolethMetadataSkipPortSQLiteTempDirSSLCipherSuiteSSLHonorCipherOrderSSLOpenSSLConfCmdSSOUsernameTitleTokenKeyTokenSignatureKeyUMaskURLURLAppendEncodedURLRedirectURLRedirectAppendURLRedirectAppendEncodedUsageLimitValidateXDebug"
 
-var _Directive_index = [...]uint16{0, 9, 22, 29, 38, 50, 55, 65, 76, 93, 106, 119, 128, 141, 148, 161, 174, 180, 192, 197, 216, 227, 230, 236, 252, 261, 271, 281, 290, 305, 321, 325, 334, 344, 354, 366, 373, 378, 384, 390, 394, 408, 418, 428, 438, 449, 458, 467, 485, 496, 516, 528, 534, 542, 549, 558, 567, 584, 599, 608, 617, 629, 635, 657, 668, 679, 694, 706, 714, 724, 728, 738, 767, 797, 819, 845, 859, 884, 901, 924, 947, 967, 991, 1012, 1035, 1058, 1090, 1109, 1129, 1206, 1239, 1251, 1277, 1295, 1310, 1328, 1346, 1361, 1381, 1409, 1425, 1446, 1468, 1498, 1516, 1531, 1556, 1579, 1595, 1614, 1637, 1660, 1681, 1708, 1733, 1751, 1780, 1809, 1831, 1844, 1867, 1880, 1890, 1904, 1917, 1924, 1929, 1946, 1954, 1965, 1977, 1984, 1992, 2006, 2027, 2047, 2060, 2067, 2072, 2089, 2097, 2104, 2114, 2127, 2141, 2160, 2177, 2188, 2193, 2201, 2218, 2223, 2226, 2242, 2253, 2270, 2294, 2304, 2312, 2318}
+var _Directive_index = [...]uint16{0, 9, 22, 29, 38, 50, 55, 65, 76, 93, 106, 119, 128, 141, 148, 161, 174, 180, 192, 197, 216, 227, 230, 236, 252, 261, 271, 281, 290, 305, 321, 325, 334, 344, 354, 366, 373, 378, 384, 390, 394, 408, 418, 428, 438, 449, 458, 467, 485, 496, 516, 528, 534, 542, 549, 558, 567, 584, 599, 608, 617, 629, 635, 657, 668, 679, 694, 706, 714, 724, 728, 738, 767, 797, 819, 845, 859, 884, 901, 924, 947, 967, 991, 1012, 1035, 1058, 1090, 1109, 1129, 1206, 1239, 1251, 1277, 1295, 1310, 1328, 1346, 1361, 1381, 1409, 1425, 1446, 1468, 1498, 1516, 1531, 1556, 1579, 1595, 1614, 1637, 1660, 1681, 1708, 1733, 1751, 1780, 1809, 1831, 1844, 1867, 1880, 1890, 1904, 1917, 1924, 1929, 1946, 1954, 1965, 1977, 1984, 1992, 2006, 2027, 2047, 2060, 2067, 2072, 2079, 2089, 2106, 2124, 2132, 2145, 2159, 2178, 2195, 2206, 2211, 2219, 2236, 2241, 2244, 2260, 2271, 2288, 2312, 2322, 2330, 2336}
 
 func (i Directive) String() string {
 	if i < 0 || i >= Directive(len(_Directive_index)-1) {
