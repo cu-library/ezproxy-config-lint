@@ -70,6 +70,8 @@ ezproxy-config-lint: Lint config files for EZproxy
         Print all lines, not just lines that create warnings.
   -follow-include-file
         Also process files referenced by IncludeFile directives. (default true)
+  -https
+        Report on URL directives which do not use the HTTPS scheme.
   -include-file-directory string
         The directory from which the IncludeFile paths will be resolved. By default, this is the current working directory.
   -verbose

@@ -43,6 +43,7 @@ type Linter struct {
 	Annotate             bool
 	Verbose              bool
 	Whitespace           bool
+	HTTPS                bool
 	FollowIncludeFile    bool
 	IncludeFileDirectory string
 	State                State
@@ -52,6 +53,7 @@ func main() {
 	annotate := flag.Bool("annotate", false, "Print all lines, not just lines that create warnings.")
 	verbose := flag.Bool("verbose", false, "Print internal state before each line is processed.")
 	whitespace := flag.Bool("whitespace", false, "Report on trailing space or tab characters.")
+	https := flag.Bool("https", false, "Report on URL directives which do not use the HTTPS scheme.")
 	followIncludeFile := flag.Bool("follow-include-file", true, "Also process files referenced by IncludeFile directives.")
 	includeFileDirectory := flag.String("include-file-directory", "", "The directory from which the IncludeFile paths will be resolved. "+
 		"By default, this is the current working directory. ")
@@ -73,6 +75,7 @@ func main() {
 		Annotate:             *annotate,
 		Verbose:              *verbose,
 		Whitespace:           *whitespace,
+		HTTPS:                *https,
 		FollowIncludeFile:    *followIncludeFile,
 		IncludeFileDirectory: *includeFileDirectory,
 	}
@@ -373,13 +376,15 @@ func (l *Linter) ProcessLine(line string) (m []string) {
 		default:
 			m = append(m, "URL directive is out of order")
 		}
-		parsedURL, err := url.Parse(l.State.URL)
-		if err != nil {
-			m = append(m, "Unable to prase URL")
-		}
-		if err == nil {
-			if parsedURL.Scheme != "https" {
-				m = append(m, "URL is not using HTTPS scheme")
+		if l.HTTPS {
+			parsedURL, err := url.Parse(l.State.URL)
+			if err != nil {
+				m = append(m, "Unable to prase URL")
+			}
+			if err == nil {
+				if parsedURL.Scheme != "https" {
+					m = append(m, "URL is not using HTTPS scheme")
+				}
 			}
 		}
 	}
