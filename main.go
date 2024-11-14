@@ -146,7 +146,7 @@ func (l *Linter) processFile(filePath string) (int, error) {
 		// If verbose mode is enabled, print the internal state
 		// of the linter before each line.
 		if l.Verbose {
-			fmt.Printf("%#v\n", l.State)
+			fmt.Printf("%+v\n", l.State)
 		}
 
 		warnings := l.ProcessLine(line)
