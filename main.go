@@ -14,8 +14,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"runtime"
-	"strconv"
 	"strings"
 	"time"
 
@@ -40,16 +40,21 @@ type State struct {
 }
 
 type Linter struct {
-	Annotate   bool
-	Verbose    bool
-	Whitespace bool
-	State      State
+	Annotate             bool
+	Verbose              bool
+	Whitespace           bool
+	FollowIncludeFile    bool
+	IncludeFileDirectory string
+	State                State
 }
 
 func main() {
-	annotate := flag.Bool("annotate", false, "Print all lines, not just lines that create warnings")
-	verbose := flag.Bool("verbose", false, "Print internal state before each line is processed")
-	whitespace := flag.Bool("whitespace", false, "Report on trailing space or tab characters")
+	annotate := flag.Bool("annotate", false, "Print all lines, not just lines that create warnings.")
+	verbose := flag.Bool("verbose", false, "Print internal state before each line is processed.")
+	whitespace := flag.Bool("whitespace", false, "Report on trailing space or tab characters.")
+	followIncludeFile := flag.Bool("follow-include-file", true, "Also process files referenced by IncludeFile directives.")
+	includeFileDirectory := flag.String("include-file-directory", "", "The directory from which the IncludeFile paths will be resolved. "+
+		"By default, this is the current working directory. ")
 	flag.Usage = func() {
 		fmt.Fprint(flag.CommandLine.Output(), "ezproxy-config-lint: Lint config files for EZproxy\n")
 		fmt.Fprintf(flag.CommandLine.Output(), "Version %v\n", version)
@@ -65,9 +70,11 @@ func main() {
 
 	// Create a Linter struct to hold configuration options.
 	linter := &Linter{
-		Annotate:   *annotate,
-		Verbose:    *verbose,
-		Whitespace: *whitespace,
+		Annotate:             *annotate,
+		Verbose:              *verbose,
+		Whitespace:           *whitespace,
+		FollowIncludeFile:    *followIncludeFile,
+		IncludeFileDirectory: *includeFileDirectory,
 	}
 
 	// Final exit code, after processing all files.
@@ -86,8 +93,8 @@ func main() {
 	os.Exit(exitCode)
 }
 
-func (l *Linter) processFile(filename string) (int, error) {
-	f, err := os.Open(filename)
+func (l *Linter) processFile(filePath string) (int, error) {
+	f, err := os.Open(filePath)
 	if err != nil {
 		return 1, err
 	}
@@ -136,6 +143,8 @@ func (l *Linter) processFile(filename string) (int, error) {
 			break
 		}
 
+		// If verbose mode is enabled, print the internal state
+		// of the linter before each line.
 		if l.Verbose {
 			fmt.Printf("%#v\n", l.State)
 		}
@@ -144,18 +153,47 @@ func (l *Linter) processFile(filename string) (int, error) {
 		if len(warnings) > 0 {
 			exit = 2
 			if l.State.LastLineEmpty {
-				for range len(strconv.Itoa(lineNum)) {
-					fmt.Printf(" ")
-				}
-				fmt.Printf("  %v\n", yellow(fmt.Sprintf("!!! %v", strings.Join(warnings, ", "))))
-				if more {
-					fmt.Printf("%v:\n", lineNum)
+				// This will print any warnings that can only be checked after a stanza is closed, and apply to the whole stanza.
+				fmt.Printf("%v:%v: %v\n", filePath, lineNum, yellow(fmt.Sprintf("↑ %v", strings.Join(warnings, ", "))))
+				// If we're printing the whole file, print the empty line we just processed without any warnings.
+				// This helps break up the annotated output with lines between stanzas.
+				if l.Annotate && more {
+					fmt.Printf("%v:%v:\n", filePath, lineNum)
 				}
 			} else {
-				fmt.Printf("%v: %v %v\n", lineNum, line, yellow(fmt.Sprintf("!!! %v", strings.Join(warnings, ", "))))
+				fmt.Printf("%v:%v: %v %v\n", filePath, lineNum, line, yellow(fmt.Sprintf("← %v", strings.Join(warnings, ", "))))
 			}
 		} else if l.Annotate && more {
-			fmt.Printf("%v: %v\n", lineNum, line)
+			fmt.Printf("%v:%v: %v\n", filePath, lineNum, line)
+		}
+
+		// Follow IncludeFile paths recursively.
+		if l.FollowIncludeFile && l.State.Previous == IncludeFile {
+			splitLine := strings.Split(line, " ")
+			if len(splitLine) < 2 {
+				return 1, fmt.Errorf("unable to find IncludeFile path on line \"%v\"", line)
+			}
+			includeFilePath := splitLine[1]
+			// If the file path in the config file is absolute, don't join it with the IncludeFileDirectory.
+			if !filepath.IsAbs(includeFilePath) {
+				includeFilePath = filepath.Join(l.IncludeFileDirectory, includeFilePath)
+			}
+			absIncludeFilePath, err := filepath.Abs(includeFilePath)
+			if err != nil {
+				return 1, err
+			}
+			inclueFileExitCode, err := l.processFile(includeFilePath)
+			if err != nil {
+				// Help people debug errors with IncludeFile parent directories.
+				log.Printf("Error encountered when processing line \"%v\".\n", line)
+				if !filepath.IsAbs(includeFilePath) {
+					log.Printf("%v resolves to the absolute path %v.\n", includeFilePath, absIncludeFilePath)
+				}
+				return 1, err
+			}
+			if inclueFileExitCode != exit {
+				exit = inclueFileExitCode
+			}
 		}
 	}
 
