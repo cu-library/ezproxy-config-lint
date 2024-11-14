@@ -12,6 +12,26 @@
 The `-annotate` flag makes the tool print the whole file, not just lines which raise warnings. 
 The tool uses non-zero exit codes to indicate problems: `1` means an error occured during linting, `2` means at least one warning was printed.
 
+## Checking for updates with 'Source'
+
+The linter has a built-in way to check the OCLC website for updates to some database stanzas. If a comment is seen which matches the pattern "# Source - https://help.oclc.org/Library_Management/EZproxy/EZproxy_database_stanzas/...", the tool will check the stanza at the provided URL and pull out the `Title` directive. The tool will report if the stanza title in the config file does not match the stanza title from the OCLC website.
+
+For example, for the resource Docuseek2, if the staza begins with a Source comment:
+
+```
+# Source - https://help.oclc.org/Library_Management/EZproxy/EZproxy_database_stanzas/Database_stanzas_D/Docuseek2
+Title Docuseek2 (updated 20180101)
+...
+```
+the linter will visit https://help.oclc.org/Library_Management/EZproxy/EZproxy_database_stanzas/Database_stanzas_D/Docuseek2, and pull out the Title directive, which might be:
+
+```
+Title Docuseek2 (updated 20191015)
+...
+```
+
+Because the title directives do not match, the tool will report that you might want to update the stanza from the source.
+
 ## Status
 
 This software is still an early prototype, with lots of false positives, false negatives, and missing features. Please feel free to submit [issues](https://github.com/cu-library/ezproxy-config-lint/issues)!
