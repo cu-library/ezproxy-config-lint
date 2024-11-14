@@ -77,14 +77,14 @@ ezproxy-config-lint: Lint config files for EZproxy
   -whitespace
         Report on trailing space or tab characters.
 $ ./ezproxy-config-lint ../config.txt
-4: URL https://www.ebmedicine.net !!! URL directive is out of order
-   !!! Stanza "EB Medicine (updated 20190614)" has "Option DomainCookieOnly" or "Option CookiePassthrough" but doesn't have a corresponding "Option Cookie" line at the end of the stanza
-$ ./ezproxy-config-lint -annotate config.txt
-1: Option DomainCookieOnly
-2: Title EB Medicine (updated 20190614)
-3: HJ http://www.ebmedicine.net
-4: URL https://www.ebmedicine.net !!! URL directive is out of order
-5: DJ ebmedicine.net
-6: NeverProxy cdnjs.cloudflare.com
-   !!! Stanza "EB Medicine (updated 20190614)" has "Option DomainCookieOnly" or "Option CookiePassthrough" but doesn't have a corresponding "Option Cookie" line at the end of the stanza
+../config.txt:4: URL https://www.ebmedicine.net ← URL directive is out of order
+../config.txt:6: ↑ Stanza "EB Medicine (updated 20190614)" has "Option DomainCookieOnly" or "Option CookiePassthrough" but doesn't have a corresponding "Option Cookie" line at the end of the stanza
+$ ./ezproxy-config-lint -annotate ../config.txt
+../config.txt:1: Option DomainCookieOnly
+../config.txt:2: Title EB Medicine (updated 20190614)
+../config.txt:3: HJ http://www.ebmedicine.net
+../config.txt:4: URL https://www.ebmedicine.net ← URL directive is out of order
+../config.txt:5: DJ ebmedicine.net
+../config.txt:6: NeverProxy cdnjs.cloudflare.com
+../config.txt:6: ↑ Stanza "EB Medicine (updated 20190614)" has "Option DomainCookieOnly" or "Option CookiePassthrough" but doesn't have a corresponding "Option Cookie" line at the end of the stanza
 ```
