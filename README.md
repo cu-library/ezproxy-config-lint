@@ -63,15 +63,20 @@ DJ ebmedicine.net
 NeverProxy cdnjs.cloudflare.com
 $ wget --quiet https://github.com/cu-library/ezproxy-config-lint/releases/latest/download/ezproxy-config-lint_Linux_x86_64.tar.gz
 $ tar xzvf ezproxy-config-lint_Linux_x86_64.tar.gz
+$ cd ezproxy-config-lint_Linux_x86_64
 $ ./ezproxy-config-lint -help
 ezproxy-config-lint: Lint config files for EZproxy
   -annotate
-        Print all lines, not just lines that create warnings
+        Print all lines, not just lines that create warnings.
+  -follow-include-file
+        Also process files referenced by IncludeFile directives. (default true)
+  -include-file-directory string
+        The directory from which the IncludeFile paths will be resolved. By default, this is the current working directory.
   -verbose
-        Print internal state before each line is processed
+        Print internal state before each line is processed.
   -whitespace
-        Report on trailing space or tab characters
-$ ./ezproxy-config-lint config.txt
+        Report on trailing space or tab characters.
+$ ./ezproxy-config-lint ../config.txt
 4: URL https://www.ebmedicine.net !!! URL directive is out of order
    !!! Stanza "EB Medicine (updated 20190614)" has "Option DomainCookieOnly" or "Option CookiePassthrough" but doesn't have a corresponding "Option Cookie" line at the end of the stanza
 $ ./ezproxy-config-lint -annotate config.txt
