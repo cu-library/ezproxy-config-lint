@@ -54,8 +54,8 @@ func main() {
 	verbose := flag.Bool("verbose", false, "Print internal state before each line is processed.")
 	whitespace := flag.Bool("whitespace", false, "Report on trailing space or tab characters.")
 	https := flag.Bool("https", false, "Report on URL directives which do not use the HTTPS scheme.")
-	followIncludeFile := flag.Bool("follow-include-file", true, "Also process files referenced by IncludeFile directives.")
-	includeFileDirectory := flag.String("include-file-directory", "", "The directory from which the IncludeFile paths will be resolved. "+
+	followIncludeFile := flag.Bool("follow-includefile", true, "Also process files referenced by IncludeFile directives.")
+	includeFileDirectory := flag.String("includefile-directory", "", "The directory from which the IncludeFile paths will be resolved. "+
 		"By default, IncludeFile paths are resolved from the config file's directory, unless they are absolute paths.")
 	flag.Usage = func() {
 		fmt.Fprint(flag.CommandLine.Output(), "ezproxy-config-lint: Lint config files for EZproxy\n")
@@ -184,7 +184,7 @@ func (l *Linter) processFile(filePath string) (int, error) {
 			if !filepath.IsAbs(includeFilePath) {
 				if l.IncludeFileDirectory != "" {
 					includeFilePath = filepath.Join(l.IncludeFileDirectory, includeFilePath)
-					help = fmt.Sprintf("The include-file-directory option used, joined %v with %v", l.IncludeFileDirectory, includeFilePath)
+					help = fmt.Sprintf("The '-includefile-directory' option was used, joined %v with %v", l.IncludeFileDirectory, includeFilePath)
 				} else {
 					filePathDir := filepath.Dir(filePath)
 					includeFilePath = filepath.Join(filePathDir, includeFilePath)
@@ -199,7 +199,7 @@ func (l *Linter) processFile(filePath string) (int, error) {
 				log.Printf("Error encountered when processing line \"%v\".\n", line)
 				log.Println(help)
 				if l.IncludeFileDirectory == "" {
-					log.Println("You might want to try the include-file-directory option.")
+					log.Println("You might want to try the '-includefile-directory' option.")
 				}
 				return 1, err
 			}

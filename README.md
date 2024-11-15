@@ -68,11 +68,11 @@ $ ./ezproxy-config-lint -help
 ezproxy-config-lint: Lint config files for EZproxy
   -annotate
         Print all lines, not just lines that create warnings.
-  -follow-include-file
+  -follow-includefile
         Also process files referenced by IncludeFile directives. (default true)
   -https
         Report on URL directives which do not use the HTTPS scheme.
-  -include-file-directory string
+  -includefile-directory string
         The directory from which the IncludeFile paths will be resolved. By default, this is the current working directory.
   -verbose
         Print internal state before each line is processed.
