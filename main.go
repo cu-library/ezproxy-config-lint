@@ -217,8 +217,8 @@ func (l *Linter) ProcessLine(line string) (m []string) {
 	// is uniform.
 	line = strings.TrimSpace(line)
 
-	// Is the line empty?
-	if line == "" {
+	// Is the line empty, or an empty comment?
+	if line == "" || line == "#" {
 		if l.State.Title != "" && l.State.URL == "" {
 			m = append(m, fmt.Sprintf("Stanza \"%v\" has Title but no URL", l.State.Title))
 		}
