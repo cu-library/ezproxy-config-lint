@@ -381,7 +381,7 @@ func (l *Linter) ProcessLine(line string) (m []string) {
 		}
 		l.State.URL = TrimURLPrefix(line)
 		switch l.State.Previous {
-		case Title, HTTPHeader, MimeFilter, EbrarySite:
+		case Title, HTTPHeader, MimeFilter, AllowVars, EncryptVar, EBLSecret, EbrarySite:
 		default:
 			m = append(m, "URL directive is out of order")
 		}
