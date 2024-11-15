@@ -56,7 +56,7 @@ func main() {
 	https := flag.Bool("https", false, "Report on URL directives which do not use the HTTPS scheme.")
 	followIncludeFile := flag.Bool("follow-include-file", true, "Also process files referenced by IncludeFile directives.")
 	includeFileDirectory := flag.String("include-file-directory", "", "The directory from which the IncludeFile paths will be resolved. "+
-		"By default, this is the current working directory. ")
+		"By default, IncludeFile paths are resolved from the config file's directory, unless they are absolute paths.")
 	flag.Usage = func() {
 		fmt.Fprint(flag.CommandLine.Output(), "ezproxy-config-lint: Lint config files for EZproxy\n")
 		fmt.Fprintf(flag.CommandLine.Output(), "Version %v\n", version)
@@ -177,24 +177,33 @@ func (l *Linter) processFile(filePath string) (int, error) {
 				return 1, fmt.Errorf("unable to find IncludeFile path on line \"%v\"", line)
 			}
 			includeFilePath := splitLine[1]
-			// If the file path in the config file is absolute, don't join it with the IncludeFileDirectory.
+			help := ""
+			// If the file path for the included file is not absolute, we should
+			// join it with the IncludeFileDirectory or the parent directory
+			// of the config file.
 			if !filepath.IsAbs(includeFilePath) {
-				includeFilePath = filepath.Join(l.IncludeFileDirectory, includeFilePath)
+				if l.IncludeFileDirectory != "" {
+					includeFilePath = filepath.Join(l.IncludeFileDirectory, includeFilePath)
+					help = fmt.Sprintf("The include-file-directory option used, joined %v with %v", l.IncludeFileDirectory, includeFilePath)
+				} else {
+					filePathDir := filepath.Dir(filePath)
+					includeFilePath = filepath.Join(filePathDir, includeFilePath)
+					help += fmt.Sprintf("This IncludeFile directive is in a config file at this path: %v\n", filePath)
+					help += fmt.Sprintf("            The IncludeFile directive resolves to this path: %v", includeFilePath)
+				}
 			}
-			absIncludeFilePath, err := filepath.Abs(includeFilePath)
-			if err != nil {
-				return 1, err
-			}
+
 			inclueFileExitCode, err := l.processFile(includeFilePath)
 			if err != nil {
 				// Help people debug errors with IncludeFile parent directories.
 				log.Printf("Error encountered when processing line \"%v\".\n", line)
-				if !filepath.IsAbs(includeFilePath) {
-					log.Printf("%v resolves to the absolute path %v.\n", includeFilePath, absIncludeFilePath)
+				log.Println(help)
+				if l.IncludeFileDirectory == "" {
+					log.Println("You might want to try the include-file-directory option.")
 				}
 				return 1, err
 			}
-			if inclueFileExitCode != exit {
+			if inclueFileExitCode == 2 {
 				exit = inclueFileExitCode
 			}
 		}
