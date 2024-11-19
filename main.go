@@ -10,6 +10,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -53,6 +54,7 @@ type Linter struct {
 	FollowIncludeFile    bool
 	IncludeFileDirectory string
 	State                State
+	Output               io.Writer
 }
 
 func main() {
@@ -84,6 +86,7 @@ func main() {
 		HTTPS:                *https,
 		FollowIncludeFile:    *followIncludeFile,
 		IncludeFileDirectory: *includeFileDirectory,
+		Output:               os.Stdout,
 	}
 
 	// Final exit code, after processing all files.
@@ -155,7 +158,7 @@ func (l *Linter) ProcessFile(filePath string) (int, error) {
 		// If verbose mode is enabled, print the internal state
 		// of the linter before each line.
 		if l.Verbose {
-			fmt.Printf("%+v\n", l.State)
+			fmt.Fprintf(l.Output, "%+v\n", l.State)
 		}
 
 		warnings := l.ProcessLine(line)
@@ -163,17 +166,17 @@ func (l *Linter) ProcessFile(filePath string) (int, error) {
 			exit = RESULT_WARN
 			if l.State.LastLineEmpty {
 				// This will print any warnings that can only be checked after a stanza is closed, and apply to the whole stanza.
-				fmt.Printf("%v:%v: %v\n", filePath, lineNum, yellow(fmt.Sprintf("↑ %v", strings.Join(warnings, ", "))))
+				fmt.Fprintf(l.Output, "%v:%v: %v\n", filePath, lineNum, yellow(fmt.Sprintf("↑ %v", strings.Join(warnings, ", "))))
 				// If we're printing the whole file, print the empty line we just processed without any warnings.
 				// This helps break up the annotated output with lines between stanzas.
 				if l.Annotate && more {
-					fmt.Printf("%v:%v:\n", filePath, lineNum)
+					fmt.Fprintf(l.Output, "%v:%v:\n", filePath, lineNum)
 				}
 			} else {
-				fmt.Printf("%v:%v: %v %v\n", filePath, lineNum, line, yellow(fmt.Sprintf("← %v", strings.Join(warnings, ", "))))
+				fmt.Fprintf(l.Output, "%v:%v: %v %v\n", filePath, lineNum, line, yellow(fmt.Sprintf("← %v", strings.Join(warnings, ", "))))
 			}
 		} else if l.Annotate && more {
-			fmt.Printf("%v:%v: %v\n", filePath, lineNum, line)
+			fmt.Fprintf(l.Output, "%v:%v: %v\n", filePath, lineNum, line)
 		}
 
 		// Follow IncludeFile paths recursively.

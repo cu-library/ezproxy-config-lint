@@ -1,14 +1,14 @@
 package main
 
 import (
-	"log"
+	"io"
 	"path/filepath"
 	"strings"
 	"testing"
 )
 
 func TestInvalid(t *testing.T) {
-	linter := &Linter{}
+	linter := &Linter{Output: io.Discard}
 
 	dirContent, err := filepath.Glob("testdata/invalid/*.txt")
 	if err != nil {
@@ -17,7 +17,7 @@ func TestInvalid(t *testing.T) {
 
 	for _, f := range dirContent {
 		filename := strings.TrimPrefix(f, "testdata/invalid/")
-		log.Printf("> invalid: %s\n", filename)
+		t.Logf("> invalid: %s\n", filename)
 
 		ret, _ := linter.ProcessFile(f)
 		if ret == 0 {
@@ -27,7 +27,7 @@ func TestInvalid(t *testing.T) {
 }
 
 func TestValid(t *testing.T) {
-	linter := &Linter{}
+	linter := &Linter{Output: io.Discard}
 
 	dirContent, err := filepath.Glob("testdata/valid/*.txt")
 	if err != nil {
@@ -36,7 +36,7 @@ func TestValid(t *testing.T) {
 
 	for _, f := range dirContent {
 		filename := strings.TrimPrefix(f, "testdata/valid/")
-		log.Printf("> valid: %s\n", filename)
+		t.Logf("> valid: %s\n", filename)
 
 		ret, _ := linter.ProcessFile(f)
 		if ret != 0 {
