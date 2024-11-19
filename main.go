@@ -26,6 +26,12 @@ import (
 // A version flag, which should be overwritten when building using ldflags.
 var version = "devel"
 
+const (
+	RESULT_SUCCESS = iota
+	RESULT_ERROR
+	RESULT_WARN
+)
+
 type State struct {
 	AnonymousURLNeedsClosing  bool
 	CookieOptionNeedsClosing  bool
@@ -81,14 +87,14 @@ func main() {
 	}
 
 	// Final exit code, after processing all files.
-	exitCode := 0
+	exitCode := RESULT_SUCCESS
 
 	for _, arg := range flag.Args() {
-		fileExitCode, err := linter.processFile(arg)
+		fileExitCode, err := linter.ProcessFile(arg)
 		if err != nil {
 			log.Fatalf("Error processing %v: %v", arg, err)
 		}
-		if exitCode == 0 && fileExitCode != 0 {
+		if exitCode == RESULT_SUCCESS && fileExitCode != RESULT_SUCCESS {
 			exitCode = fileExitCode
 		}
 	}
@@ -96,10 +102,10 @@ func main() {
 	os.Exit(exitCode)
 }
 
-func (l *Linter) processFile(filePath string) (int, error) {
+func (l *Linter) ProcessFile(filePath string) (int, error) {
 	f, err := os.Open(filePath)
 	if err != nil {
-		return 1, err
+		return RESULT_ERROR, err
 	}
 	defer f.Close()
 
@@ -121,7 +127,7 @@ func (l *Linter) processFile(filePath string) (int, error) {
 	l.State = State{}
 
 	// What exit code should be used.
-	exit := 0
+	exit := RESULT_SUCCESS
 
 	// Loop through each line in the file.
 	for {
@@ -154,7 +160,7 @@ func (l *Linter) processFile(filePath string) (int, error) {
 
 		warnings := l.ProcessLine(line)
 		if len(warnings) > 0 {
-			exit = 2
+			exit = RESULT_WARN
 			if l.State.LastLineEmpty {
 				// This will print any warnings that can only be checked after a stanza is closed, and apply to the whole stanza.
 				fmt.Printf("%v:%v: %v\n", filePath, lineNum, yellow(fmt.Sprintf("↑ %v", strings.Join(warnings, ", "))))
@@ -174,7 +180,7 @@ func (l *Linter) processFile(filePath string) (int, error) {
 		if l.FollowIncludeFile && l.State.Previous == IncludeFile {
 			splitLine := strings.Split(line, " ")
 			if len(splitLine) < 2 {
-				return 1, fmt.Errorf("unable to find IncludeFile path on line \"%v\"", line)
+				return RESULT_ERROR, fmt.Errorf("unable to find IncludeFile path on line \"%v\"", line)
 			}
 			includeFilePath := splitLine[1]
 			help := ""
@@ -193,7 +199,7 @@ func (l *Linter) processFile(filePath string) (int, error) {
 				}
 			}
 
-			inclueFileExitCode, err := l.processFile(includeFilePath)
+			includeFileExitCode, err := l.ProcessFile(includeFilePath)
 			if err != nil {
 				// Help people debug errors with IncludeFile parent directories.
 				log.Printf("Error encountered when processing line \"%v\".\n", line)
@@ -201,17 +207,17 @@ func (l *Linter) processFile(filePath string) (int, error) {
 				if l.IncludeFileDirectory == "" {
 					log.Println("You might want to try the '-includefile-directory' option.")
 				}
-				return 1, err
+				return RESULT_ERROR, err
 			}
-			if inclueFileExitCode == 2 {
-				exit = inclueFileExitCode
+			if includeFileExitCode == RESULT_WARN {
+				exit = includeFileExitCode
 			}
 		}
 	}
 
 	// If the scanner encountered any errors, report them to the caller.
 	if err := scanner.Err(); err != nil {
-		return 1, err
+		return RESULT_ERROR, err
 	}
 	return exit, nil
 }
