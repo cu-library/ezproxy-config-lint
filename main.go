@@ -55,6 +55,8 @@ type Linter struct {
 	IncludeFileDirectory string
 	State                State
 	Output               io.Writer
+	PreviousTitles       map[string]int
+	PreviousOrigins      map[string]int
 }
 
 func main() {
@@ -161,7 +163,7 @@ func (l *Linter) ProcessFile(filePath string) (int, error) {
 			fmt.Fprintf(l.Output, "%+v\n", l.State)
 		}
 
-		warnings := l.ProcessLine(line)
+		warnings := l.ProcessLineAt(line, lineNum)
 		if len(warnings) > 0 {
 			exit = RESULT_WARN
 			if l.State.LastLineEmpty {
@@ -226,6 +228,18 @@ func (l *Linter) ProcessFile(filePath string) (int, error) {
 }
 
 func (l *Linter) ProcessLine(line string) (m []string) {
+	return l.ProcessLineAt(line, 0)
+}
+
+func (l *Linter) ProcessLineAt(line string, lineNum int) (m []string) {
+	// Initialize maps if they are still nil.
+	if l.PreviousTitles == nil {
+		l.PreviousTitles = make(map[string]int)
+	}
+	if l.PreviousOrigins == nil {
+		l.PreviousOrigins = make(map[string]int)
+	}
+
 	// Does the line end in a space or tab character?
 	if l.Whitespace && TrailingSpaceOrTabCheck(line) {
 		m = append(m, "Line ends in a space or tab character")
@@ -301,7 +315,7 @@ func (l *Linter) ProcessLine(line string) (m []string) {
 		return m
 	}
 
-	// Short-circut check for Find/Replace pairs.
+	// Short-circuit check for Find/Replace pairs.
 	if l.State.Previous == Find && directive != Replace {
 		m = append(m, "Find directive must be immediately proceeded with a Replace directive.")
 	}
@@ -370,6 +384,12 @@ func (l *Linter) ProcessLine(line string) (m []string) {
 			m = append(m, "Duplicate Title directive")
 		}
 		l.State.Title = TrimTitlePrefix(line)
+		titleSeenOnLine, titleSeen := l.PreviousTitles[l.State.Title]
+		if titleSeen {
+			m = append(m, fmt.Sprintf("Title already seen on line %v", titleSeenOnLine))
+		} else {
+			l.PreviousTitles[l.State.Title] = lineNum
+		}
 		if l.State.OCLCTitle != "" && l.State.Title != l.State.OCLCTitle {
 			m = append(m, "Source title doesn't match, you might need to update this stanza.")
 		}
@@ -386,6 +406,30 @@ func (l *Linter) ProcessLine(line string) (m []string) {
 		default:
 			m = append(m, "Title directive is out of order")
 		}
+	case Host, HostJavaScript:
+		trimmedURL := TrimHostPrefix(TrimHostJavaScriptPrefix(line))
+		parsedURL, err := url.Parse(trimmedURL)
+		if err != nil {
+			m = append(m, fmt.Sprintf("Unable to parse URL, might be malformed: %v", err))
+			break
+		}
+		if parsedURL.Host == "" {
+			// This H/HJ line did not have a scheme.
+			// Per the EZproxy docs, http:// is assumed.
+			trimmedURL = fmt.Sprintf("http://%v", trimmedURL)
+			parsedURL, err = url.Parse(trimmedURL)
+			if err != nil {
+				m = append(m, fmt.Sprintf("Unable to parse URL, might be malformed: %v", err))
+				break
+			}
+		}
+		origin := fmt.Sprintf("%v://%v", parsedURL.Scheme, parsedURL.Host)
+		originSeenOnLine, originSeen := l.PreviousOrigins[origin]
+		if originSeen {
+			m = append(m, fmt.Sprintf("Origin already seen on line %v", originSeenOnLine))
+		} else {
+			l.PreviousOrigins[origin] = lineNum
+		}
 	case URL:
 		if l.State.Title == "" {
 			m = append(m, "URL directive is before Title directive")
@@ -393,23 +437,36 @@ func (l *Linter) ProcessLine(line string) (m []string) {
 		if l.State.URL != "" {
 			m = append(m, "Duplicate URL directive")
 		}
-		l.State.URL = TrimURLPrefix(line)
 		switch l.State.Previous {
 		case Title, HTTPHeader, MimeFilter, AllowVars, EncryptVar, EBLSecret, EbrarySite:
 		default:
 			m = append(m, "URL directive is out of order")
 		}
-		if l.HTTPS {
-			parsedURL, err := url.Parse(l.State.URL)
-			if err != nil {
-				m = append(m, "Unable to prase URL")
-			}
-			if err == nil {
-				if parsedURL.Scheme != "https" {
-					m = append(m, "URL is not using HTTPS scheme")
-				}
-			}
+		l.State.URL = TrimURLPrefix(line)
+		parsedURL, err := url.Parse(l.State.URL)
+		if err != nil {
+			m = append(m, fmt.Sprintf("Unable to parse URL, might be malformed: %v", err))
+			break
 		}
+		if parsedURL.Host == "" {
+			m = append(m, "URL does not start with http or https")
+			break
+		}
+		if l.HTTPS && parsedURL.Scheme != "https" {
+			m = append(m, "URL is not using HTTPS scheme")
+		}
+		// According to the EZproxy docs, 'Starting point URLs and config.txt',
+		// URL, Host, and HostJavaScript directives are checked for starting point URLs.
+		// However, so many stanzas duplicate the URL in an HJ or H line that
+		// enabling the check below will add a lot of noise to the output.
+		// Possible to add behind a 'pedantic' flag later.
+		// Origin := fmt.Sprintf("%v://%v", parsedURL.Scheme, parsedURL.Host)
+		// originSeenOnLine, originSeen := l.PreviousOrigins[origin]
+		// if originSeen {
+		//	m = append(m, fmt.Sprintf("Origin already seen on line %v", originSeenOnLine))
+		// } else {
+		//	l.PreviousOrigins[origin] = lineNum
+		// }.
 	}
 	l.State.Previous = directive
 	return m
@@ -485,20 +542,40 @@ func TrailingSpaceOrTabCheck(line string) bool {
 
 func TrimTitlePrefix(line string) string {
 	if strings.HasPrefix(line, "Title ") {
-		return strings.TrimPrefix(line, "Title ")
+		return strings.TrimSpace(strings.TrimPrefix(line, "Title "))
 	}
 	if strings.HasPrefix(line, "T ") {
-		return strings.TrimPrefix(line, "T ")
+		return strings.TrimSpace(strings.TrimPrefix(line, "T "))
 	}
 	return line
 }
 
 func TrimURLPrefix(line string) string {
 	if strings.HasPrefix(line, "URL ") {
-		return strings.TrimPrefix(line, "URL ")
+		return strings.TrimSpace(strings.TrimPrefix(line, "URL "))
 	}
 	if strings.HasPrefix(line, "U ") {
-		return strings.TrimPrefix(line, "U ")
+		return strings.TrimSpace(strings.TrimPrefix(line, "U "))
+	}
+	return line
+}
+
+func TrimHostPrefix(line string) string {
+	if strings.HasPrefix(line, "Host ") {
+		return strings.TrimSpace(strings.TrimPrefix(line, "Host "))
+	}
+	if strings.HasPrefix(line, "H ") {
+		return strings.TrimSpace(strings.TrimPrefix(line, "H "))
+	}
+	return line
+}
+
+func TrimHostJavaScriptPrefix(line string) string {
+	if strings.HasPrefix(line, "HostJavaScript ") {
+		return strings.TrimSpace(strings.TrimPrefix(line, "HostJavaScript "))
+	}
+	if strings.HasPrefix(line, "HJ ") {
+		return strings.TrimSpace(strings.TrimPrefix(line, "HJ "))
 	}
 	return line
 }

@@ -12,6 +12,12 @@
 The `-annotate` flag makes the tool print the whole file, not just lines which raise warnings. 
 The tool uses non-zero exit codes to indicate problems: `1` means an error occured during linting, `2` means at least one warning was printed.
 
+## Help
+
+### Origin already seen on line
+
+EZproxy [only reads origins and does not read paths](https://help.oclc.org/Library_Management/EZproxy/Configure_resources/Groups). The origin is the combination of the scheme (http or https), the host (google.com, help.oclc.org), and the port. EZproxy does not care about paths (/astronomy, /login). The linter will report if you've already used an origin, so that you can ensure that limiting access via Groups works as you expect.
+
 ## Checking for updates with 'Source'
 
 The linter has a built-in way to check the OCLC website for updates to some database stanzas. If a comment is seen which matches the pattern "# Source - https://help.oclc.org/Library_Management/EZproxy/EZproxy_database_stanzas/...", the tool will check the stanza at the provided URL and pull out the `Title` directive. The tool will report if the stanza title in the config file does not match the stanza title from the OCLC website.

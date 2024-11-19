@@ -30,6 +30,39 @@ func TestMissingURL(t *testing.T) {
 	}
 }
 
+func TestMalformedURL(t *testing.T) {
+	linter := Linter{State: State{
+		Title:    "A Title",
+		Previous: Title,
+	}}
+	expected := []string{"Unable to parse URL, might be malformed: parse \"http://[boo\": missing ']' in host"}
+	messages := linter.ProcessLine("URL http://[boo")
+	if !reflect.DeepEqual(messages, expected) {
+		t.Fatalf("incorrect messages %v instead of %v", messages, expected)
+	}
+}
+
+func TestURLWithoutScheme(t *testing.T) {
+	linter := Linter{State: State{
+		Title:    "A Title",
+		Previous: Title,
+	}}
+	expected := []string{"URL does not start with http or https"}
+	messages := linter.ProcessLine("URL google.com")
+	if !reflect.DeepEqual(messages, expected) {
+		t.Fatalf("incorrect messages %v instead of %v", messages, expected)
+	}
+}
+
+func TestMalformedHost(t *testing.T) {
+	linter := Linter{}
+	expected := []string{"Unable to parse URL, might be malformed: parse \"http://[]w]w[ef\": invalid port \"w[ef\" after host"}
+	messages := linter.ProcessLine("HJ []w]w[ef")
+	if !reflect.DeepEqual(messages, expected) {
+		t.Fatalf("incorrect messages %v instead of %v", messages, expected)
+	}
+}
+
 func TestTrailingSpaceOrTabCheck(t *testing.T) {
 	var tests = []struct {
 		line     string
