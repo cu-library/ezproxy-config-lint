@@ -298,6 +298,11 @@ func (l *Linter) ProcessLine(line string) (m []string) {
 		return m
 	}
 
+	// Short-circut check for Find/Replace pairs.
+	if l.State.Previous == Find && directive != Replace {
+		m = append(m, "Find directive must be immediately proceeded with a Replace directive.")
+	}
+
 	// Check each directive.
 	switch directive {
 	case OptionCookie:

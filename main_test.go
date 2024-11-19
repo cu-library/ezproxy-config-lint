@@ -69,3 +69,14 @@ func TestMultilineDirective(t *testing.T) {
 		t.Fatalf("Processing multiline directive did not find the correct Directive")
 	}
 }
+
+func TestFindReplacePair(t *testing.T) {
+	linter := Linter{State: State{
+		Previous: Find,
+	}}
+	expected := []string{"Find directive must be immediately proceeded with a Replace directive."}
+	messages := linter.ProcessLine("NeverProxy google.com")
+	if !reflect.DeepEqual(messages, expected) {
+		t.Fatalf("incorrect messages %v instead of %v", messages, expected)
+	}
+}
