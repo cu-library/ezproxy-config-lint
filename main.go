@@ -429,6 +429,15 @@ func (l *Linter) ProcessLineAt(line string, lineNum int) (m []string) {
 		} else {
 			l.PreviousOrigins[origin] = lineNum
 		}
+	case Domain, DomainJavaScript:
+		parsedURL, err := url.Parse(TrimDirective(line, directive))
+		if err != nil {
+			m = append(m, fmt.Sprintf("Unable to parse URL, might be malformed: %v", err))
+			break
+		}
+		if parsedURL.Scheme != "" || strings.Contains(parsedURL.Path, "/") {
+			m = append(m, "Domain and DomainJavaScript directives should only specify domains")
+		}
 	case URL:
 		if l.State.Title == "" {
 			m = append(m, "URL directive is before Title directive")
