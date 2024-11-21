@@ -357,7 +357,7 @@ func (l *Linter) ProcessLineAt(line string, lineNum int) (m []string) {
 		l.State.CookieOptionNeedsClosing = true
 	case AnonymousURL:
 		if l.State.AnonymousURLNeedsClosing {
-			if strings.TrimPrefix(line, "AnonymousURL ") == "-*" {
+			if TrimDirective(line, directive) == "-*" {
 				switch l.State.Previous {
 				case URL, Host, HostJavaScript, Domain, DomainJavaScript, Replace:
 				default:
@@ -383,7 +383,7 @@ func (l *Linter) ProcessLineAt(line string, lineNum int) (m []string) {
 		if l.State.Title != "" {
 			m = append(m, "Duplicate Title directive")
 		}
-		l.State.Title = TrimTitlePrefix(line)
+		l.State.Title = TrimDirective(line, directive)
 		titleSeenOnLine, titleSeen := l.PreviousTitles[l.State.Title]
 		if titleSeen {
 			m = append(m, fmt.Sprintf("Title already seen on line %v", titleSeenOnLine))
@@ -407,8 +407,8 @@ func (l *Linter) ProcessLineAt(line string, lineNum int) (m []string) {
 			m = append(m, "Title directive is out of order")
 		}
 	case Host, HostJavaScript:
-		trimmedURL := TrimHostPrefix(TrimHostJavaScriptPrefix(line))
-		parsedURL, err := url.Parse(trimmedURL)
+		trimmed := TrimDirective(line, directive)
+		parsedURL, err := url.Parse(trimmed)
 		if err != nil {
 			m = append(m, fmt.Sprintf("Unable to parse URL, might be malformed: %v", err))
 			break
@@ -416,8 +416,7 @@ func (l *Linter) ProcessLineAt(line string, lineNum int) (m []string) {
 		if parsedURL.Host == "" {
 			// This H/HJ line did not have a scheme.
 			// Per the EZproxy docs, http:// is assumed.
-			trimmedURL = fmt.Sprintf("http://%v", trimmedURL)
-			parsedURL, err = url.Parse(trimmedURL)
+			parsedURL, err = url.Parse("http://" + trimmed)
 			if err != nil {
 				m = append(m, fmt.Sprintf("Unable to parse URL, might be malformed: %v", err))
 				break
@@ -442,7 +441,7 @@ func (l *Linter) ProcessLineAt(line string, lineNum int) (m []string) {
 		default:
 			m = append(m, "URL directive is out of order")
 		}
-		l.State.URL = TrimURLPrefix(line)
+		l.State.URL = TrimDirective(line, directive)
 		parsedURL, err := url.Parse(l.State.URL)
 		if err != nil {
 			m = append(m, fmt.Sprintf("Unable to parse URL, might be malformed: %v", err))
@@ -516,7 +515,7 @@ func processSourceLine(sourceLine string) (string, string, error) {
 				for scanner.Scan() {
 					line := scanner.Text()
 					if strings.HasPrefix(line, "Title ") || strings.HasPrefix(line, "T ") {
-						oclcTitle = TrimTitlePrefix(line)
+						oclcTitle = TrimDirective(line, Title)
 						break
 					}
 				}
@@ -540,42 +539,11 @@ func TrailingSpaceOrTabCheck(line string) bool {
 	return false
 }
 
-func TrimTitlePrefix(line string) string {
-	if strings.HasPrefix(line, "Title ") {
-		return strings.TrimSpace(strings.TrimPrefix(line, "Title "))
+func TrimDirective(line string, directiveToTrim Directive) string {
+	for label, directive := range LabelToDirective {
+		if directive == directiveToTrim {
+			line = strings.TrimPrefix(line, label+" ")
+		}
 	}
-	if strings.HasPrefix(line, "T ") {
-		return strings.TrimSpace(strings.TrimPrefix(line, "T "))
-	}
-	return line
-}
-
-func TrimURLPrefix(line string) string {
-	if strings.HasPrefix(line, "URL ") {
-		return strings.TrimSpace(strings.TrimPrefix(line, "URL "))
-	}
-	if strings.HasPrefix(line, "U ") {
-		return strings.TrimSpace(strings.TrimPrefix(line, "U "))
-	}
-	return line
-}
-
-func TrimHostPrefix(line string) string {
-	if strings.HasPrefix(line, "Host ") {
-		return strings.TrimSpace(strings.TrimPrefix(line, "Host "))
-	}
-	if strings.HasPrefix(line, "H ") {
-		return strings.TrimSpace(strings.TrimPrefix(line, "H "))
-	}
-	return line
-}
-
-func TrimHostJavaScriptPrefix(line string) string {
-	if strings.HasPrefix(line, "HostJavaScript ") {
-		return strings.TrimSpace(strings.TrimPrefix(line, "HostJavaScript "))
-	}
-	if strings.HasPrefix(line, "HJ ") {
-		return strings.TrimSpace(strings.TrimPrefix(line, "HJ "))
-	}
-	return line
+	return strings.TrimSpace(line)
 }
