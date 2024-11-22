@@ -44,6 +44,7 @@ type State struct {
 	Source                    string
 	Title                     string
 	URL                       string
+	ProxyHostnameEditDepth    int
 }
 
 type Linter struct {
@@ -355,6 +356,29 @@ func (l *Linter) ProcessLineAt(line string, lineNum int) (m []string) {
 			m = append(m, "Option DomainCookieOnly directive is out of order")
 		}
 		l.State.CookieOptionNeedsClosing = true
+	case ProxyHostnameEdit:
+		switch l.State.Previous {
+		case Undefined, Group, HTTPMethod, OptionCookie, OptionCookiePassThrough, OptionDomainCookieOnly, ProxyHostnameEdit:
+		default:
+			m = append(m, "ProxyHostnameEdit directive is out of order")
+		}
+		hostnameEditPair := strings.Split(TrimDirective(line, directive), " ")
+		if len(hostnameEditPair) != 2 {
+			m = append(m, "ProxyHostnameEdit directive must have two values")
+			break
+		}
+		find, found := strings.CutSuffix(hostnameEditPair[0], "$")
+		if !found {
+			m = append(m, "Find part of ProxyHostnameEdit directive should end with a $")
+		}
+		if strings.ReplaceAll(find, ".", "-") != hostnameEditPair[1] {
+			m = append(m, "Replace part of ProxyHostnameEdit directive is malformed")
+		}
+		depth := strings.Count(find, ".") + 1
+		if l.State.ProxyHostnameEditDepth != 0 && l.State.ProxyHostnameEditDepth < depth {
+			m = append(m, "ProxyHostnameEdit domains should be placed in deepest-to-shallowest order")
+		}
+		l.State.ProxyHostnameEditDepth = depth
 	case AnonymousURL:
 		if l.State.AnonymousURLNeedsClosing {
 			if TrimDirective(line, directive) == "-*" {
@@ -380,19 +404,6 @@ func (l *Linter) ProcessLineAt(line string, lineNum int) (m []string) {
 			l.State.AnonymousURLNeedsClosing = true
 		}
 	case Title:
-		if l.State.Title != "" {
-			m = append(m, "Duplicate Title directive")
-		}
-		l.State.Title = TrimDirective(line, directive)
-		titleSeenOnLine, titleSeen := l.PreviousTitles[l.State.Title]
-		if titleSeen {
-			m = append(m, fmt.Sprintf("Title already seen on line %v", titleSeenOnLine))
-		} else {
-			l.PreviousTitles[l.State.Title] = lineNum
-		}
-		if l.State.OCLCTitle != "" && l.State.Title != l.State.OCLCTitle {
-			m = append(m, "Source title doesn't match, you might need to update this stanza.")
-		}
 		switch l.State.Previous {
 		case Undefined, Group, HTTPMethod, OptionCookiePassThrough, OptionDomainCookieOnly, ProxyHostnameEdit, OptionEbraryUnencodedTokens:
 		case OptionCookie:
@@ -405,6 +416,19 @@ func (l *Linter) ProcessLineAt(line string, lineNum int) (m []string) {
 			}
 		default:
 			m = append(m, "Title directive is out of order")
+		}
+		if l.State.Title != "" {
+			m = append(m, "Duplicate Title directive")
+		}
+		l.State.Title = TrimDirective(line, directive)
+		titleSeenOnLine, titleSeen := l.PreviousTitles[l.State.Title]
+		if titleSeen {
+			m = append(m, fmt.Sprintf("Title already seen on line %v", titleSeenOnLine))
+		} else {
+			l.PreviousTitles[l.State.Title] = lineNum
+		}
+		if l.State.OCLCTitle != "" && l.State.Title != l.State.OCLCTitle {
+			m = append(m, "Source title doesn't match, you might need to update this stanza.")
 		}
 	case Host, HostJavaScript:
 		trimmed := TrimDirective(line, directive)
@@ -439,16 +463,16 @@ func (l *Linter) ProcessLineAt(line string, lineNum int) (m []string) {
 			m = append(m, "Domain and DomainJavaScript directives should only specify domains")
 		}
 	case URL:
+		switch l.State.Previous {
+		case Title, HTTPHeader, MimeFilter, AllowVars, EncryptVar, EBLSecret, EbrarySite:
+		default:
+			m = append(m, "URL directive is out of order")
+		}
 		if l.State.Title == "" {
 			m = append(m, "URL directive is before Title directive")
 		}
 		if l.State.URL != "" {
 			m = append(m, "Duplicate URL directive")
-		}
-		switch l.State.Previous {
-		case Title, HTTPHeader, MimeFilter, AllowVars, EncryptVar, EBLSecret, EbrarySite:
-		default:
-			m = append(m, "URL directive is out of order")
 		}
 		l.State.URL = TrimDirective(line, directive)
 		parsedURL, err := url.Parse(l.State.URL)

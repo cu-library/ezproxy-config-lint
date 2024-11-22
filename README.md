@@ -18,6 +18,19 @@ The tool uses non-zero exit codes to indicate problems: `1` means an error occur
 
 EZproxy [only reads origins and does not read paths](https://help.oclc.org/Library_Management/EZproxy/Configure_resources/Groups). The origin is the combination of the scheme (http or https), the host (google.com, help.oclc.org), and the port. EZproxy does not care about paths (/astronomy, /login). The linter will report if you've already used an origin, so that you can ensure that limiting access via Groups works as you expect.
 
+### ProxyHostnameEdit domains should be placed in deepest-to-shallowest order
+
+This is best explained with an example. Lets say you have these two lines in your stanza:
+
+```
+ProxyHostnameEdit heinonline.org$ heinonline-org
+ProxyHostnameEdit home.heinonline.org$ home-heinonline-org
+```
+
+and EZproxy was processing the domain name `home.heinonline.org`. It would start with the first line, and the resulting find and replace action would generate the domain name `home.heinonline-org`. Because that domain name has one period and one hyphen, it would not match the second ProxyHostnameEdit line. You always want to start with more specific, deeper subdomains. 
+
+We use "deeper" instead of "longer" here, because areallylongdomainhere.com is only two components deep, but a.short.domain.ca is 4 components deep.
+
 ## Checking for updates with 'Source'
 
 The linter has a built-in way to check the OCLC website for updates to some database stanzas. If a comment is seen which matches the pattern "# Source - https://help.oclc.org/Library_Management/EZproxy/EZproxy_database_stanzas/...", the tool will check the stanza at the provided URL and pull out the `Title` directive. The tool will report if the stanza title in the config file does not match the stanza title from the OCLC website.
