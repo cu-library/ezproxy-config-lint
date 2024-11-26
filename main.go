@@ -380,24 +380,16 @@ func (l *Linter) ProcessLineAt(line string, lineNum int) (m []string) {
 		}
 		l.State.ProxyHostnameEditDepth = depth
 	case AnonymousURL:
-		if l.State.AnonymousURLNeedsClosing {
-			if TrimDirective(line, directive) == "-*" {
-				switch l.State.Previous {
-				case URL, Host, HostJavaScript, Domain, DomainJavaScript, Replace:
-				default:
-					m = append(m, "AnonymousURL directive is out of order")
-				}
-				l.State.AnonymousURLNeedsClosing = false
-			} else {
-				switch l.State.Previous {
-				case AnonymousURL:
-				default:
-					m = append(m, "AnonymousURL directive is out of order")
-				}
+		if TrimDirective(line, directive) == "-*" {
+			switch l.State.Previous {
+			case URL, Host, HostJavaScript, Domain, DomainJavaScript, Replace:
+			default:
+				m = append(m, "AnonymousURL directive is out of order")
 			}
+			l.State.AnonymousURLNeedsClosing = false
 		} else {
 			switch l.State.Previous {
-			case Undefined, Group, HTTPMethod, OptionCookie, OptionCookiePassThrough, OptionDomainCookieOnly, ProxyHostnameEdit:
+			case Undefined, Group, HTTPMethod, OptionCookie, OptionCookiePassThrough, OptionDomainCookieOnly, ProxyHostnameEdit, AnonymousURL:
 			default:
 				m = append(m, "AnonymousURL directive is out of order")
 			}
