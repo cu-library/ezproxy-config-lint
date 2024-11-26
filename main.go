@@ -405,7 +405,7 @@ func (l *Linter) ProcessLineAt(line string, lineNum int) (m []string) {
 		}
 	case Title:
 		switch l.State.Previous {
-		case Undefined, Group, HTTPMethod, OptionCookiePassThrough, OptionDomainCookieOnly, ProxyHostnameEdit, OptionEbraryUnencodedTokens:
+		case Undefined, Group, HTTPMethod, OptionCookiePassThrough, OptionDomainCookieOnly, ProxyHostnameEdit, Referer, OptionEbraryUnencodedTokens:
 		case OptionCookie:
 			if !l.State.CookieOptionNeedsClosing {
 				m = append(m, "Title directive is out of order")
