@@ -439,7 +439,7 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 		origin := fmt.Sprintf("%v://%v", parsedURL.Scheme, parsedURL.Host)
 		originSeenAt, originSeen := l.PreviousOrigins[origin]
 		if originSeen {
-			m = append(m, fmt.Sprintf("Origin already seen on line %v", originSeenAt))
+			m = append(m, fmt.Sprintf("Origin already seen at %v", originSeenAt))
 		} else {
 			l.PreviousOrigins[origin] = at
 		}
