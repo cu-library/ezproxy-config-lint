@@ -13,7 +13,7 @@ import (
 func TestLineEndingInSpace(t *testing.T) {
 	linter := Linter{Whitespace: true}
 	expected := []string{"Line ends in a space or tab character"}
-	messages := linter.ProcessLine("Title hello     ")
+	messages := linter.ProcessLineAt("Title hello     ", "test:1")
 	if !reflect.DeepEqual(messages, expected) {
 		t.Fatalf("incorrect messages %v instead of %v", messages, expected)
 	}
@@ -24,7 +24,7 @@ func TestMissingURL(t *testing.T) {
 		Title: "A Title",
 	}}
 	expected := []string{"Stanza \"A Title\" has Title but no URL"}
-	messages := linter.ProcessLine("")
+	messages := linter.ProcessLineAt("", "test:1")
 	if !reflect.DeepEqual(messages, expected) {
 		t.Fatalf("incorrect messages %v instead of %v", messages, expected)
 	}
@@ -36,7 +36,7 @@ func TestMalformedURL(t *testing.T) {
 		Previous: Title,
 	}}
 	expected := []string{"Unable to parse URL, might be malformed: parse \"http://[boo\": missing ']' in host"}
-	messages := linter.ProcessLine("URL http://[boo")
+	messages := linter.ProcessLineAt("URL http://[boo", "test:1")
 	if !reflect.DeepEqual(messages, expected) {
 		t.Fatalf("incorrect messages %v instead of %v", messages, expected)
 	}
@@ -48,7 +48,7 @@ func TestURLWithoutScheme(t *testing.T) {
 		Previous: Title,
 	}}
 	expected := []string{"URL does not start with http or https"}
-	messages := linter.ProcessLine("URL google.com")
+	messages := linter.ProcessLineAt("URL google.com", "test:1")
 	if !reflect.DeepEqual(messages, expected) {
 		t.Fatalf("incorrect messages %v instead of %v", messages, expected)
 	}
@@ -57,7 +57,7 @@ func TestURLWithoutScheme(t *testing.T) {
 func TestMalformedHost(t *testing.T) {
 	linter := Linter{}
 	expected := []string{"Unable to parse URL, might be malformed: parse \"http://[]w]w[ef\": invalid port \"w[ef\" after host"}
-	messages := linter.ProcessLine("HJ []w]w[ef")
+	messages := linter.ProcessLineAt("HJ []w]w[ef", "test:1")
 	if !reflect.DeepEqual(messages, expected) {
 		t.Fatalf("incorrect messages %v instead of %v", messages, expected)
 	}
@@ -93,7 +93,7 @@ func TestMultilineDirective(t *testing.T) {
                       -SignResponse=false -SignAssertion=true -EncryptAssertion=false \
                       -Cert=EZproxyCertNumber`
 	for _, line := range strings.Split(multiline, "\n") {
-		messages := linter.ProcessLine(line)
+		messages := linter.ProcessLineAt(line, "test:1")
 		if len(messages) != 0 {
 			t.Fatalf("Multiline directive was not properly processed: %v", messages)
 		}
@@ -108,7 +108,7 @@ func TestFindReplacePair(t *testing.T) {
 		Previous: Find,
 	}}
 	expected := []string{"Find directive must be immediately proceeded with a Replace directive."}
-	messages := linter.ProcessLine("NeverProxy google.com")
+	messages := linter.ProcessLineAt("NeverProxy google.com", "test:1")
 	if !reflect.DeepEqual(messages, expected) {
 		t.Fatalf("incorrect messages %v instead of %v", messages, expected)
 	}

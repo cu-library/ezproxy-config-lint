@@ -1,0 +1,5 @@
+IncludeFile ../valid/factiva.txt
+
+Title Factivia Again 
+URL https://global.factiva.com/en/sess/login.asp?xsid=[PLACE-XSID-HERE]
+HJ www.factiva.com

@@ -56,8 +56,8 @@ type Linter struct {
 	IncludeFileDirectory string
 	State                State
 	Output               io.Writer
-	PreviousTitles       map[string]int
-	PreviousOrigins      map[string]int
+	PreviousTitles       map[string]string
+	PreviousOrigins      map[string]string
 }
 
 func main() {
@@ -164,22 +164,24 @@ func (l *Linter) ProcessFile(filePath string) (int, error) {
 			fmt.Fprintf(l.Output, "%+v\n", l.State)
 		}
 
-		warnings := l.ProcessLineAt(line, lineNum)
+		at := fmt.Sprintf("%v:%v", filePath, lineNum)
+
+		warnings := l.ProcessLineAt(line, at)
 		if len(warnings) > 0 {
 			exit = RESULT_WARN
 			if l.State.LastLineEmpty {
 				// This will print any warnings that can only be checked after a stanza is closed, and apply to the whole stanza.
-				fmt.Fprintf(l.Output, "%v:%v: %v\n", filePath, lineNum, yellow(fmt.Sprintf("↑ %v", strings.Join(warnings, ", "))))
+				fmt.Fprintf(l.Output, "%v: %v\n", at, yellow(fmt.Sprintf("↑ %v", strings.Join(warnings, ", "))))
 				// If we're printing the whole file, print the empty line we just processed without any warnings.
 				// This helps break up the annotated output with lines between stanzas.
 				if l.Annotate && more {
-					fmt.Fprintf(l.Output, "%v:%v:\n", filePath, lineNum)
+					fmt.Fprintf(l.Output, "%v:\n", at)
 				}
 			} else {
-				fmt.Fprintf(l.Output, "%v:%v: %v %v\n", filePath, lineNum, line, yellow(fmt.Sprintf("← %v", strings.Join(warnings, ", "))))
+				fmt.Fprintf(l.Output, "%v: %v %v\n", at, line, yellow(fmt.Sprintf("← %v", strings.Join(warnings, ", "))))
 			}
 		} else if l.Annotate && more {
-			fmt.Fprintf(l.Output, "%v:%v: %v\n", filePath, lineNum, line)
+			fmt.Fprintf(l.Output, "%v: %v\n", at, line)
 		}
 
 		// Follow IncludeFile paths recursively.
@@ -228,17 +230,13 @@ func (l *Linter) ProcessFile(filePath string) (int, error) {
 	return exit, nil
 }
 
-func (l *Linter) ProcessLine(line string) (m []string) {
-	return l.ProcessLineAt(line, 0)
-}
-
-func (l *Linter) ProcessLineAt(line string, lineNum int) (m []string) {
+func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 	// Initialize maps if they are still nil.
 	if l.PreviousTitles == nil {
-		l.PreviousTitles = make(map[string]int)
+		l.PreviousTitles = make(map[string]string)
 	}
 	if l.PreviousOrigins == nil {
-		l.PreviousOrigins = make(map[string]int)
+		l.PreviousOrigins = make(map[string]string)
 	}
 
 	// Does the line end in a space or tab character?
@@ -413,11 +411,11 @@ func (l *Linter) ProcessLineAt(line string, lineNum int) (m []string) {
 			m = append(m, "Duplicate Title directive")
 		}
 		l.State.Title = TrimDirective(line, directive)
-		titleSeenOnLine, titleSeen := l.PreviousTitles[l.State.Title]
+		titleSeenAt, titleSeen := l.PreviousTitles[l.State.Title]
 		if titleSeen {
-			m = append(m, fmt.Sprintf("Title already seen on line %v", titleSeenOnLine))
+			m = append(m, fmt.Sprintf("Title already seen at %v", titleSeenAt))
 		} else {
-			l.PreviousTitles[l.State.Title] = lineNum
+			l.PreviousTitles[l.State.Title] = at
 		}
 		if l.State.OCLCTitle != "" && l.State.Title != l.State.OCLCTitle {
 			m = append(m, "Source title doesn't match, you might need to update this stanza.")
@@ -439,11 +437,11 @@ func (l *Linter) ProcessLineAt(line string, lineNum int) (m []string) {
 			}
 		}
 		origin := fmt.Sprintf("%v://%v", parsedURL.Scheme, parsedURL.Host)
-		originSeenOnLine, originSeen := l.PreviousOrigins[origin]
+		originSeenAt, originSeen := l.PreviousOrigins[origin]
 		if originSeen {
-			m = append(m, fmt.Sprintf("Origin already seen on line %v", originSeenOnLine))
+			m = append(m, fmt.Sprintf("Origin already seen on line %v", originSeenAt))
 		} else {
-			l.PreviousOrigins[origin] = lineNum
+			l.PreviousOrigins[origin] = at
 		}
 	case Domain, DomainJavaScript:
 		parsedURL, err := url.Parse(TrimDirective(line, directive))
@@ -481,16 +479,10 @@ func (l *Linter) ProcessLineAt(line string, lineNum int) (m []string) {
 		}
 		// According to the EZproxy docs, 'Starting point URLs and config.txt',
 		// URL, Host, and HostJavaScript directives are checked for starting point URLs.
+		// URL origins should be checked against or added to PreviousOrigins.
 		// However, so many stanzas duplicate the URL in an HJ or H line that
 		// enabling the check below will add a lot of noise to the output.
 		// Possible to add behind a 'pedantic' flag later.
-		// Origin := fmt.Sprintf("%v://%v", parsedURL.Scheme, parsedURL.Host)
-		// originSeenOnLine, originSeen := l.PreviousOrigins[origin]
-		// if originSeen {
-		//	m = append(m, fmt.Sprintf("Origin already seen on line %v", originSeenOnLine))
-		// } else {
-		//	l.PreviousOrigins[origin] = lineNum
-		// }.
 	}
 	l.State.Previous = directive
 	return m

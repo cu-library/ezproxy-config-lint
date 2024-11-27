@@ -9,7 +9,7 @@ import (
 )
 
 func NewLinter() *Linter {
-	l := &Linter{Output: io.Discard}
+	l := &Linter{Output: io.Discard, FollowIncludeFile: true}
 	if testing.Verbose() {
 		l.Output = os.Stdout
 	}
