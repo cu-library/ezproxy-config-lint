@@ -325,6 +325,7 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 		if l.State.CookieOptionNeedsClosing {
 			switch l.State.Previous {
 			case URL, Host, HostJavaScript, Domain, DomainJavaScript, Replace:
+				// OptionCookie is allowed after these directives.
 			case AnonymousURL:
 				if l.State.AnonymousURLNeedsClosing {
 					m = append(m, "Option Cookie directive is out of order")
@@ -343,6 +344,7 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 	case OptionCookiePassThrough:
 		switch l.State.Previous {
 		case Undefined, Group, HTTPMethod:
+			// OptionCookiePassThrough is allowed after these directives.
 		default:
 			m = append(m, "Option CookiePassThrough directive is out of order")
 		}
@@ -350,13 +352,17 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 	case OptionDomainCookieOnly:
 		switch l.State.Previous {
 		case Undefined, Group, HTTPMethod:
+			// OptionDomainCookieOnly is allowed after these directives.
 		default:
 			m = append(m, "Option DomainCookieOnly directive is out of order")
 		}
 		l.State.CookieOptionNeedsClosing = true
 	case ProxyHostnameEdit:
 		switch l.State.Previous {
-		case Undefined, Group, HTTPMethod, OptionCookie, OptionCookiePassThrough, OptionDomainCookieOnly, ProxyHostnameEdit:
+		case Undefined, Group, HTTPMethod,
+			OptionCookie, OptionCookiePassThrough, OptionDomainCookieOnly,
+			ProxyHostnameEdit:
+			// ProxyHostnameEdit is allowed after these directives.
 		default:
 			m = append(m, "ProxyHostnameEdit directive is out of order")
 		}
@@ -381,6 +387,7 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 		if TrimDirective(line, directive) == "-*" {
 			switch l.State.Previous {
 			case URL, Host, HostJavaScript, Domain, DomainJavaScript, Replace:
+				// AnonymousURL is allowed after these directives.
 			default:
 				m = append(m, "AnonymousURL directive is out of order")
 			}
@@ -395,7 +402,10 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 		}
 	case Title:
 		switch l.State.Previous {
-		case Undefined, Group, HTTPMethod, OptionCookiePassThrough, OptionDomainCookieOnly, ProxyHostnameEdit, Referer, AddUserHeader, OptionEbraryUnencodedTokens:
+		case Undefined, Group, HTTPMethod,
+			OptionCookiePassThrough, OptionDomainCookieOnly,
+			ProxyHostnameEdit, Referer, AddUserHeader, OptionEbraryUnencodedTokens:
+			// Title is allowed after these directives.
 		case OptionCookie:
 			if !l.State.CookieOptionNeedsClosing {
 				m = append(m, "Title directive is out of order")
@@ -455,6 +465,7 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 	case URL:
 		switch l.State.Previous {
 		case Title, HTTPHeader, MimeFilter, AllowVars, EncryptVar, EBLSecret, EbrarySite:
+			// URL is allowed after these directives.
 		default:
 			m = append(m, "URL directive is out of order")
 		}
