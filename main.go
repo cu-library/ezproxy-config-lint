@@ -351,7 +351,7 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 		l.State.CookieOptionNeedsClosing = true
 	case OptionDomainCookieOnly:
 		switch l.State.Previous {
-		case Undefined, Group, HTTPMethod:
+		case Undefined, Group, HTTPMethod, OptionXForwardedFor:
 			// OptionDomainCookieOnly is allowed after these directives.
 		default:
 			m = append(m, "Option DomainCookieOnly directive is out of order")
