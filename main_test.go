@@ -113,3 +113,21 @@ func TestFindReplacePair(t *testing.T) {
 		t.Fatalf("incorrect messages %v instead of %v", messages, expected)
 	}
 }
+
+func TestMisstyledDirective(t *testing.T) {
+	linter := Linter{State: State{}}
+	expected := []string{"Title directive improperly styled as TITLE"}
+	messages := linter.ProcessLineAt("TITLE Foo", "test:1")
+	if !reflect.DeepEqual(messages, expected) {
+		t.Fatalf("incorrect messages %v instead of %v", messages, expected)
+	}
+}
+
+func TestUnknownDirective(t *testing.T) {
+	linter := Linter{State: State{}}
+	expected := []string{"Unknown directive FooBar"}
+	messages := linter.ProcessLineAt("FooBar Baz", "test:1")
+	if !reflect.DeepEqual(messages, expected) {
+		t.Fatalf("incorrect messages %v instead of %v", messages, expected)
+	}
+}
