@@ -310,7 +310,24 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 	// Find the Directive which matches this label.
 	directive, ok := LabelToDirective[label]
 	if !ok {
-		m = append(m, "Unknown directive")
+		// If no directive is matched, do a case-insensitive search
+		// of all directives to see if we have a misstyled directive.
+		tLabel := strings.ToUpper(label)
+		misstyledDirective := false
+		for k := range LabelToDirective {
+			if strings.ToUpper(k) == tLabel {
+				misstyledDirective = true
+				// reuse tLabel to store the correct directive
+				tLabel = k
+				break
+			}
+		}
+
+		if misstyledDirective {
+			m = append(m, fmt.Sprintf("%v directive improperly styled as %v", tLabel, label))
+		} else {
+			m = append(m, fmt.Sprintf("Unknown directive %v", label))
+		}
 		return m
 	}
 
