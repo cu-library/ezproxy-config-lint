@@ -23,7 +23,7 @@ func TestMissingURL(t *testing.T) {
 	linter := Linter{State: State{
 		Title: "A Title",
 	}}
-	expected := []string{"Stanza \"A Title\" has Title but no URL"}
+	expected := []string{"Stanza \"A Title\" has Title but no URL (L4003)"}
 	messages := linter.ProcessLineAt("", "test:1")
 	if !reflect.DeepEqual(messages, expected) {
 		t.Fatalf("incorrect messages %v instead of %v", messages, expected)
@@ -35,7 +35,7 @@ func TestMalformedURL(t *testing.T) {
 		Title:    "A Title",
 		Previous: Title,
 	}}
-	expected := []string{"Unable to parse URL, might be malformed: parse \"http://[boo\": missing ']' in host"}
+	expected := []string{"Unable to parse URL, might be malformed: parse \"http://[boo\": missing ']' in host (L3005)"}
 	messages := linter.ProcessLineAt("URL http://[boo", "test:1")
 	if !reflect.DeepEqual(messages, expected) {
 		t.Fatalf("incorrect messages %v instead of %v", messages, expected)
@@ -47,7 +47,7 @@ func TestURLWithoutScheme(t *testing.T) {
 		Title:    "A Title",
 		Previous: Title,
 	}}
-	expected := []string{"URL does not start with http or https"}
+	expected := []string{"URL does not start with http or https (L3006)"}
 	messages := linter.ProcessLineAt("URL google.com", "test:1")
 	if !reflect.DeepEqual(messages, expected) {
 		t.Fatalf("incorrect messages %v instead of %v", messages, expected)
@@ -56,7 +56,7 @@ func TestURLWithoutScheme(t *testing.T) {
 
 func TestMalformedHost(t *testing.T) {
 	linter := Linter{}
-	expected := []string{"Unable to parse URL, might be malformed: parse \"http://[]w]w[ef\": invalid port \"w[ef\" after host"}
+	expected := []string{"Unable to parse URL, might be malformed: parse \"http://[]w]w[ef\": invalid port \"w[ef\" after host (L3005)"}
 	messages := linter.ProcessLineAt("HJ []w]w[ef", "test:1")
 	if !reflect.DeepEqual(messages, expected) {
 		t.Fatalf("incorrect messages %v instead of %v", messages, expected)
@@ -107,7 +107,7 @@ func TestFindReplacePair(t *testing.T) {
 	linter := Linter{State: State{
 		Previous: Find,
 	}}
-	expected := []string{"Find directive must be immediately proceeded with a Replace directive."}
+	expected := []string{"Find directive must be immediately proceeded with a Replace directive (L4004)"}
 	messages := linter.ProcessLineAt("NeverProxy google.com", "test:1")
 	if !reflect.DeepEqual(messages, expected) {
 		t.Fatalf("incorrect messages %v instead of %v", messages, expected)
