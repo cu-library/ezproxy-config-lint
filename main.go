@@ -317,7 +317,7 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 		for k := range LabelToDirective {
 			if strings.ToUpper(k) == tLabel {
 				misstyledDirective = true
-				// Reuse tLabel to store the correct directive
+				// Reuse tLabel to store the correct directive.
 				tLabel = k
 				break
 			}
