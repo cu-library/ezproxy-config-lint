@@ -403,7 +403,7 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 	case AnonymousURL:
 		if TrimDirective(line, directive) == "-*" {
 			switch l.State.Previous {
-			case URL, Host, HostJavaScript, Domain, DomainJavaScript, Replace:
+			case URL, Host, HostJavaScript, Domain, DomainJavaScript, Replace, NeverProxy:
 				// AnonymousURL is allowed after these directives.
 			default:
 				m = append(m, "Final AnonymousURL directive is out of order (L1003)")
