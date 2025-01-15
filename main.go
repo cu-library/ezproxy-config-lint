@@ -345,7 +345,7 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 				// OptionCookie is allowed after these directives.
 			case AnonymousURL:
 				if l.State.AnonymousURLNeedsClosing {
-					m = append(m, "Option Cookie directive is out of order, should not preceed closing AnonymousURL (L1011)")
+					m = append(m, "Option Cookie directive is out of order, should not precede closing AnonymousURL (L1011)")
 				}
 			default:
 				m = append(m, "Option Cookie directive is out of order (L1005)")
