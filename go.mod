@@ -1,6 +1,6 @@
 module github.com/cu-library/ezproxy-config-lint
 
-go 1.22.5
+go 1.23.4
 
 require (
 	github.com/fatih/color v1.18.0

@@ -1,7 +1,7 @@
 // Copyright Carleton University Library All rights reserved.
 // Use of this source code is governed by the MIT
 // license that can be found in the LICENSE file.
-package main
+package linter
 
 //go:generate stringer -type Directive --linecomment
 type Directive int
@@ -170,7 +170,7 @@ const (
 	XDebug
 )
 
-var LabelToDirective = map[string]Directive{
+var LabelToDirective = map[string]Directive{ //nolint:gochecknoglobals
 	"A":                               AutoLoginIP,
 	"AddUserHeader":                   AddUserHeader,
 	"AllowIP":                         AllowIP,

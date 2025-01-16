@@ -6,10 +6,12 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/cu-library/ezproxy-config-lint/internal/linter"
 )
 
-func NewLinter() *Linter {
-	l := &Linter{Output: io.Discard, FollowIncludeFile: true}
+func NewLinter() *linter.Linter {
+	l := &linter.Linter{Output: io.Discard, FollowIncludeFile: true}
 	if testing.Verbose() {
 		l.Output = os.Stdout
 	}
