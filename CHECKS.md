@@ -282,7 +282,7 @@ No URLs or path components should be used.
 
 #### Unable to parse `URL`
 
-The `URL` directive.  Ensure line is not malformed.
+The `URL` directive must be in the [URL (version 1)](https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_1), [URL (version 2)](https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_2), or [URL (version 3)](https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_3) format, and the URL must be parseable. Ensure line is not malformed.
 
 ---------
 
