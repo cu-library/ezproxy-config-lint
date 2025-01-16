@@ -10,7 +10,7 @@
 - Ensuring that stanzas have one, and only one, `URL` and `Title` directive.
 
 The `-annotate` flag makes the tool print the whole file, not just lines which raise warnings. 
-The tool uses non-zero exit codes to indicate problems: `1` means an error occured during linting, `2` means at least one warning was printed.
+The tool uses non-zero exit codes to indicate problems: `1` means at least one issue was found, `2` means the linter experienced an error and could not continue.
 
 ## Help
 
