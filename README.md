@@ -12,6 +12,8 @@
 The `-annotate` flag makes the tool print the whole file, not just lines which raise warnings. 
 The tool uses non-zero exit codes to indicate problems: `1` means at least one issue was found, `2` means the linter experienced an error and could not continue.
 
+Checks performed by this linter are explained in more detail in the [CHECKS](CHECKS.md) documentation.
+
 ## Help
 
 ### Origin already seen on line
@@ -98,14 +100,18 @@ ezproxy-config-lint: Lint config files for EZproxy
   -whitespace
         Report on trailing space or tab characters.
 $ ./ezproxy-config-lint ../config.txt
-../config.txt:4: URL https://www.ebmedicine.net ← URL directive is out of order
-../config.txt:6: ↑ Stanza "EB Medicine (updated 20190614)" has "Option DomainCookieOnly" or "Option CookiePassthrough" but doesn't have a corresponding "Option Cookie" line at the end of the stanza
+../config.txt:4: URL https://www.ebmedicine.net ← URL directive is out of order (L1002)
+../config.txt:6: ↑ Stanza "EB Medicine" has "Option DomainCookieOnly" or "Option CookiePassthrough" but doesn't have a corresponding "Option Cookie" line at the end of the stanza (L4002)
+
+2 issues found.
 $ ./ezproxy-config-lint -annotate ../config.txt
 ../config.txt:1: Option DomainCookieOnly
-../config.txt:2: Title EB Medicine (updated 20190614)
+../config.txt:2: Title EB Medicine
 ../config.txt:3: HJ http://www.ebmedicine.net
-../config.txt:4: URL https://www.ebmedicine.net ← URL directive is out of order
+../config.txt:4: URL https://www.ebmedicine.net ← URL directive is out of order (L1002)
 ../config.txt:5: DJ ebmedicine.net
 ../config.txt:6: NeverProxy cdnjs.cloudflare.com
-../config.txt:6: ↑ Stanza "EB Medicine (updated 20190614)" has "Option DomainCookieOnly" or "Option CookiePassthrough" but doesn't have a corresponding "Option Cookie" line at the end of the stanza
+../config.txt:6: ↑ Stanza "EB Medicine" has "Option DomainCookieOnly" or "Option CookiePassthrough" but doesn't have a corresponding "Option Cookie" line at the end of the stanza (L4002)
+
+2 issues found.
 ```
