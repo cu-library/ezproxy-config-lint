@@ -27,6 +27,7 @@ type State struct {
 	InMultiline               bool
 	LastLineEmpty             bool
 	OCLCTitle                 string
+	Current                   Directive
 	Previous                  Directive
 	PreviousMultilineSegments string
 	Source                    string
@@ -262,190 +263,286 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 		}
 		return m
 	}
+	l.State.Current = directive
 
 	// Short-circuit check for Find/Replace pairs.
+	// Without this, we would need to check that the previous
+	// directive was not Find on every directive other than Replace.
 	if l.State.Previous == Find && directive != Replace {
 		m = append(m, "Find directive must be immediately proceeded with a Replace directive (L4004)")
 	}
 
-	// Check each directive.
+	// Process each directive.
 	switch directive {
 	case OptionCookie:
-		if l.State.CookieOptionNeedsClosing {
-			switch l.State.Previous {
-			case URL, Host, HostJavaScript, Domain, DomainJavaScript, Replace:
-				// OptionCookie is allowed after these directives.
-			case AnonymousURL:
-				if l.State.AnonymousURLNeedsClosing {
-					m = append(m, "Option Cookie directive is out of order, should not precede closing AnonymousURL (L1011)")
-				}
-			default:
-				m = append(m, "Option Cookie directive is out of order (L1005)")
-			}
-			l.State.CookieOptionNeedsClosing = false
-		} else {
-			switch l.State.Previous {
-			case Undefined, HTTPMethod:
-			default:
-				m = append(m, "Option Cookie directive is out of order (L1005)")
-			}
-		}
+		m = append(m, l.ProcessOptionCookie(line)...)
 	case OptionCookiePassThrough:
-		switch l.State.Previous {
-		case Undefined, Group, HTTPMethod:
-			// OptionCookiePassThrough is allowed after these directives.
-		default:
-			m = append(m, "Option CookiePassThrough directive is out of order (L1006)")
-		}
-		l.State.CookieOptionNeedsClosing = true
+		m = append(m, l.ProcessOptionCookiePassThrough(line)...)
 	case OptionDomainCookieOnly:
-		switch l.State.Previous {
-		case Undefined, Group, HTTPMethod, OptionXForwardedFor:
-			// OptionDomainCookieOnly is allowed after these directives.
-		default:
-			m = append(m, "Option DomainCookieOnly directive is out of order (L1007)")
-		}
-		l.State.CookieOptionNeedsClosing = true
+		m = append(m, l.ProcessOptionDomainCookieOnly(line)...)
 	case ProxyHostnameEdit:
-		switch l.State.Previous {
-		case Undefined, Group, HTTPMethod,
-			OptionCookie, OptionCookiePassThrough, OptionDomainCookieOnly,
-			ProxyHostnameEdit:
-			// ProxyHostnameEdit is allowed after these directives.
-		default:
-			m = append(m, "ProxyHostnameEdit directive is out of order (L1008)")
-		}
-		hostnameEditPair := strings.Split(TrimDirective(line, directive), " ")
-		if len(hostnameEditPair) != 2 {
-			m = append(m, "ProxyHostnameEdit directive must have two values (L3001)")
-			break
-		}
-		find, found := strings.CutSuffix(hostnameEditPair[0], "$")
-		if !found {
-			m = append(m, "Find part of ProxyHostnameEdit directive should end with a $ (L3002)")
-		}
-		if strings.ReplaceAll(find, ".", "-") != hostnameEditPair[1] {
-			m = append(m, "Replace part of ProxyHostnameEdit directive is malformed (L3003)")
-		}
-		depth := strings.Count(find, ".") + 1
-		if l.State.ProxyHostnameEditDepth != 0 && l.State.ProxyHostnameEditDepth < depth {
-			m = append(m, "ProxyHostnameEdit domains should be placed in deepest-to-shallowest order (L1009)")
-		}
-		l.State.ProxyHostnameEditDepth = depth
+		m = append(m, l.ProcessProxyHostnameEdit(line)...)
 	case AnonymousURL:
-		if TrimDirective(line, directive) == "-*" {
-			switch l.State.Previous {
-			case URL, Host, HostJavaScript, Domain, DomainJavaScript, Replace, NeverProxy:
-				// AnonymousURL is allowed after these directives.
-			default:
-				m = append(m, "Final AnonymousURL directive is out of order (L1003)")
-			}
-			l.State.AnonymousURLNeedsClosing = false
-		} else {
-			switch l.State.Previous {
-			case Undefined, Group, HTTPMethod, OptionCookie, OptionCookiePassThrough, OptionDomainCookieOnly, ProxyHostnameEdit, AnonymousURL:
-			default:
-				m = append(m, "AnonymousURL directive is out of order (L1004)")
-			}
-			l.State.AnonymousURLNeedsClosing = true
-		}
+		m = append(m, l.ProcessAnonymousURL(line)...)
 	case Title:
-		switch l.State.Previous {
-		case Undefined, Group, HTTPMethod,
-			OptionCookiePassThrough, OptionDomainCookieOnly,
-			ProxyHostnameEdit, Referer, AddUserHeader, OptionEbraryUnencodedTokens:
-			// Title is allowed after these directives.
-		case OptionCookie:
-			if !l.State.CookieOptionNeedsClosing {
-				m = append(m, fmt.Sprintf("Title directive is out of order, previous token: %v (L1001)", l.State.Previous))
-			}
-		case AnonymousURL:
-			if !l.State.AnonymousURLNeedsClosing {
-				m = append(m, fmt.Sprintf("Title directive is out of order, previous token: %v (L1001)", l.State.Previous))
-			}
-		default:
-			m = append(m, fmt.Sprintf("Title directive is out of order, previous token: %v (L1001)", l.State.Previous))
-		}
-		if l.State.Title != "" {
-			m = append(m, "Duplicate Title directive in stanza (L2001)")
-		}
-		l.State.Title = TrimDirective(line, directive)
-		titleSeenAt, titleSeen := l.PreviousTitles[l.State.Title]
-		if titleSeen {
-			m = append(m, fmt.Sprintf("Title value already seen at %v (L2004)", titleSeenAt))
-		} else {
-			l.PreviousTitles[l.State.Title] = at
-		}
-		if l.State.OCLCTitle != "" && l.State.Title != l.State.OCLCTitle {
-			m = append(m, "Source title doesn't match, you might need to update this stanza (L9002)")
-		}
-	case Host, HostJavaScript:
-		trimmed := TrimDirective(line, directive)
-		parsedURL, err := url.Parse(trimmed)
-		if err != nil {
-			m = append(m, fmt.Sprintf("Unable to parse URL, might be malformed: %v (L3005)", err))
-			break
-		}
-		if parsedURL.Host == "" {
-			// This H/HJ line did not have a scheme.
-			// Per the EZproxy docs, http:// is assumed.
-			parsedURL, err = url.Parse("http://" + trimmed)
-			if err != nil {
-				m = append(m, fmt.Sprintf("Unable to parse URL, might be malformed: %v (L3005)", err))
-				break
-			}
-		}
-		origin := fmt.Sprintf("%v://%v", parsedURL.Scheme, parsedURL.Host)
-		originSeenAt, originSeen := l.PreviousOrigins[origin]
-		if originSeen {
-			m = append(m, fmt.Sprintf("Origin already seen at %v (L2002)", originSeenAt))
-		} else {
-			l.PreviousOrigins[origin] = at
-		}
-	case Domain, DomainJavaScript:
-		parsedURL, err := url.Parse(TrimDirective(line, directive))
-		if err != nil {
-			m = append(m, fmt.Sprintf("Unable to parse URL, might be malformed: %v (L3005)", err))
-			break
-		}
-		if parsedURL.Scheme != "" || strings.Contains(parsedURL.Path, "/") {
-			m = append(m, "Domain and DomainJavaScript directives should only specify domains (L3004)")
-		}
+		m = append(m, l.ProcessTitle(line, at)...)
 	case URL:
-		switch l.State.Previous {
-		case Title, HTTPHeader, MimeFilter, AllowVars, EncryptVar, EBLSecret, EbrarySite:
-			// URL is allowed after these directives.
-		default:
-			m = append(m, "URL directive is out of order (L1002)")
-		}
-		if l.State.Title == "" {
-			m = append(m, "URL directive is before Title directive (L1010)")
-		}
-		if l.State.URL != "" {
-			m = append(m, "Duplicate URL directive in stanza (L2003)")
-		}
-		l.State.URL = TrimDirective(line, directive)
-		parsedURL, err := url.Parse(l.State.URL)
-		if err != nil {
-			m = append(m, fmt.Sprintf("Unable to parse URL, might be malformed: %v (L3005)", err))
-			break
-		}
-		if parsedURL.Host == "" {
-			m = append(m, "URL does not start with http or https (L3006)")
-			break
-		}
-		if l.HTTPS && parsedURL.Scheme != "https" {
-			m = append(m, "URL is not using HTTPS scheme (L3007)")
-		}
-		// According to the EZproxy docs, 'Starting point URLs and config.txt',
-		// URL, Host, and HostJavaScript directives are checked for starting point URLs.
-		// URL origins should be checked against or added to PreviousOrigins.
-		// However, so many stanzas duplicate the URL in an HJ or H line that
-		// enabling the check below will add a lot of noise to the output.
-		// Possible to add behind a 'pedantic' flag later.
+		m = append(m, l.ProcessURL(line)...)
+	case Host, HostJavaScript:
+		m = append(m, l.ProcessHostAndHostJavaScript(line, at)...)
+	case Domain, DomainJavaScript:
+		m = append(m, l.ProcessDomainAndDomainJavaScript(line)...)
 	}
 	l.State.Previous = directive
 	return m
+}
+
+// ProcessOptionCookie processes the line containing the Option Cookie directive.
+// OCLC documentation:
+// https://help.oclc.org/Library_Management/EZproxy/Configure_resources/Option_Cookie_Option_DomainCookieOnly_Option_NoCookie_Option_CookiePassThrough
+func (l *Linter) ProcessOptionCookie(line string) (m []string) {
+	if l.State.CookieOptionNeedsClosing {
+		switch l.State.Previous {
+		case URL, Host, HostJavaScript, Domain, DomainJavaScript, Replace:
+			// OptionCookie is allowed after these directives.
+		case AnonymousURL:
+			if l.State.AnonymousURLNeedsClosing {
+				m = append(m, "Option Cookie directive is out of order, should not precede closing AnonymousURL (L1011)")
+			}
+		default:
+			m = append(m, "Option Cookie directive is out of order (L1005)")
+		}
+		l.State.CookieOptionNeedsClosing = false
+	} else {
+		switch l.State.Previous {
+		case Undefined, HTTPMethod:
+		default:
+			m = append(m, "Option Cookie directive is out of order (L1005)")
+		}
+	}
+	return m
+}
+
+// ProcessOptionCookiePassThrough processes the line containing the Option CookiePassThrough directive.
+// OCLC documentation:
+// https://help.oclc.org/Library_Management/EZproxy/Configure_resources/Option_Cookie_Option_DomainCookieOnly_Option_NoCookie_Option_CookiePassThrough
+func (l *Linter) ProcessOptionCookiePassThrough(line string) (m []string) {
+	switch l.State.Previous {
+	case Undefined, Group, HTTPMethod:
+		// OptionCookiePassThrough is allowed after these directives.
+	default:
+		m = append(m, "Option CookiePassThrough directive is out of order (L1006)")
+	}
+	l.State.CookieOptionNeedsClosing = true
+	return m
+}
+
+// ProcessOptionDomainCookieOnly processes the line containing the Option DomainCookieOnly directive.
+// OCLC documentation:
+// https://help.oclc.org/Library_Management/EZproxy/Configure_resources/Option_Cookie_Option_DomainCookieOnly_Option_NoCookie_Option_CookiePassThrough
+func (l *Linter) ProcessOptionDomainCookieOnly(line string) (m []string) {
+	switch l.State.Previous {
+	case Undefined, Group, HTTPMethod, OptionXForwardedFor:
+		// OptionDomainCookieOnly is allowed after these directives.
+	default:
+		m = append(m, "Option DomainCookieOnly directive is out of order (L1007)")
+	}
+	l.State.CookieOptionNeedsClosing = true
+	return m
+}
+
+// ProcessProxyHostnameEdit processes the line containing the ProxyHostnameEdit directive.
+// OCLC documentation:
+// https://help.oclc.org/Library_Management/EZproxy/Configure_resources/ProxyHostnameEdit
+func (l *Linter) ProcessProxyHostnameEdit(line string) (m []string) {
+	switch l.State.Previous {
+	case Undefined, Group, HTTPMethod,
+		OptionCookie, OptionCookiePassThrough, OptionDomainCookieOnly,
+		ProxyHostnameEdit:
+		// ProxyHostnameEdit is allowed after these directives.
+	default:
+		m = append(m, "ProxyHostnameEdit directive is out of order (L1008)")
+	}
+	// Does the ProxyHostnameEdit line have both a find and replace?
+	findReplacePair := strings.Split(TrimDirective(line, l.State.Current), " ")
+	if len(findReplacePair) != 2 {
+		m = append(m, "ProxyHostnameEdit directive must have both a find and replace qualifier (L3001)")
+		return m
+	}
+	find, found := strings.CutSuffix(findReplacePair[0], "$")
+	if !found {
+		m = append(m, "Find part of ProxyHostnameEdit directive should end with a $ (L3002)")
+	}
+	if strings.ReplaceAll(find, ".", "-") != findReplacePair[1] {
+		m = append(m, "Replace part of ProxyHostnameEdit directive is malformed (L3003)")
+	}
+	depth := strings.Count(find, ".") + 1
+	if l.State.ProxyHostnameEditDepth != 0 && l.State.ProxyHostnameEditDepth < depth {
+		m = append(m, "ProxyHostnameEdit domains should be placed in deepest-to-shallowest order (L1009)")
+	}
+	l.State.ProxyHostnameEditDepth = depth
+	return m
+}
+
+// ProcessAnonymousURL processes the line containing the AnonymousURL directive.
+// OCLC documentation:
+// https://help.oclc.org/Library_Management/EZproxy/Configure_resources/AnonymousURL
+func (l *Linter) ProcessAnonymousURL(line string) (m []string) {
+	if TrimDirective(line, l.State.Current) == "-*" {
+		switch l.State.Previous {
+		case URL, Host, HostJavaScript, Domain, DomainJavaScript, Replace, NeverProxy:
+			// AnonymousURL is allowed after these directives.
+		default:
+			m = append(m, "Final AnonymousURL directive is out of order (L1003)")
+		}
+		l.State.AnonymousURLNeedsClosing = false
+	} else {
+		switch l.State.Previous {
+		case Undefined, Group, HTTPMethod, OptionCookie, OptionCookiePassThrough, OptionDomainCookieOnly, ProxyHostnameEdit, AnonymousURL:
+		default:
+			m = append(m, "AnonymousURL directive is out of order (L1004)")
+		}
+		l.State.AnonymousURLNeedsClosing = true
+	}
+	return m
+}
+
+// ProcessTitle processes the line containing the Title directive.
+// OCLC documentation:
+// https://help.oclc.org/Library_Management/EZproxy/Configure_resources/Title
+func (l *Linter) ProcessTitle(line, at string) (m []string) {
+	switch l.State.Previous {
+	case Undefined, Group, HTTPMethod,
+		OptionCookiePassThrough, OptionDomainCookieOnly,
+		ProxyHostnameEdit, Referer, AddUserHeader, OptionEbraryUnencodedTokens:
+		// Title is allowed after these directives.
+	case OptionCookie:
+		if !l.State.CookieOptionNeedsClosing {
+			m = append(m, fmt.Sprintf("Title directive is out of order, previous token: %v (L1001)", l.State.Previous))
+		}
+	case AnonymousURL:
+		if !l.State.AnonymousURLNeedsClosing {
+			m = append(m, fmt.Sprintf("Title directive is out of order, previous token: %v (L1001)", l.State.Previous))
+		}
+	default:
+		m = append(m, fmt.Sprintf("Title directive is out of order, previous token: %v (L1001)", l.State.Previous))
+	}
+	if l.State.Title != "" {
+		m = append(m, "Duplicate Title directive in stanza (L2001)")
+	}
+	l.State.Title = TrimDirective(line, l.State.Current)
+	titleSeenAt, titleSeen := l.PreviousTitles[l.State.Title]
+	if titleSeen {
+		m = append(m, fmt.Sprintf("Title value already seen at %v (L2004)", titleSeenAt))
+	} else {
+		l.PreviousTitles[l.State.Title] = at
+	}
+	if l.State.OCLCTitle != "" && l.State.Title != l.State.OCLCTitle {
+		m = append(m, "Source title doesn't match, you might need to update this stanza (L9002)")
+	}
+	return m
+}
+
+// ProcessHostandHostJavaScript processes the line containing a Host or HostJavaScript directive.
+// OCLC documentation:
+// https://help.oclc.org/Library_Management/EZproxy/Configure_resources/Host_H
+// https://help.oclc.org/Library_Management/EZproxy/Configure_resources/HostJavaScript_HJ
+func (l *Linter) ProcessHostAndHostJavaScript(line, at string) (m []string) {
+	trimmed := TrimDirective(line, l.State.Current)
+	parsedURL, err := url.Parse(trimmed)
+	if err != nil {
+		m = append(m, fmt.Sprintf("Unable to parse URL, might be malformed: %v (L3005)", err))
+		return
+	}
+	if parsedURL.Host == "" {
+		// This H/HJ line did not have a scheme.
+		// Per the EZproxy docs, http:// is assumed.
+		parsedURL, err = url.Parse("http://" + trimmed)
+		if err != nil {
+			m = append(m, fmt.Sprintf("Unable to parse URL, might be malformed: %v (L3005)", err))
+			return
+		}
+	}
+	origin := fmt.Sprintf("%v://%v", parsedURL.Scheme, parsedURL.Host)
+	originSeenAt, originSeen := l.PreviousOrigins[origin]
+	if originSeen {
+		m = append(m, fmt.Sprintf("Origin already seen at %v (L2002)", originSeenAt))
+	} else {
+		l.PreviousOrigins[origin] = at
+	}
+	return m
+}
+
+// ProcessDomainAndDomainJavaScript processes the line containing a Domain or DomainJavaScript directive.
+// OCLC documentation:
+// https://help.oclc.org/Library_Management/EZproxy/Configure_resources/Domain_D
+// https://help.oclc.org/Library_Management/EZproxy/Configure_resources/DomainJavaScript_DJ
+func (l *Linter) ProcessDomainAndDomainJavaScript(line string) (m []string) {
+	parsedURL, err := url.Parse(TrimDirective(line, l.State.Current))
+	if err != nil {
+		m = append(m, fmt.Sprintf("Unable to parse URL, might be malformed: %v (L3005)", err))
+		return
+	}
+	if parsedURL.Scheme != "" || strings.Contains(parsedURL.Path, "/") {
+		m = append(m, "Domain and DomainJavaScript directives should only specify domains (L3004)")
+	}
+	return m
+}
+
+// ProcessURL processes the line containing a URL directive.
+// OCLC documention:
+// https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_1
+// https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_2
+// https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_3
+func (l *Linter) ProcessURL(line string) (m []string) {
+	switch l.State.Previous {
+	case Title, HTTPHeader, MimeFilter, AllowVars, EncryptVar, EBLSecret, EbrarySite:
+		// URL is allowed after these directives.
+	default:
+		m = append(m, "URL directive is out of order (L1002)")
+	}
+	if l.State.Title == "" {
+		m = append(m, "URL directive is before Title directive (L1010)")
+	}
+	if l.State.URL != "" {
+		m = append(m, "Duplicate URL directive in stanza (L2003)")
+	}
+	l.State.URL = TrimDirective(line, l.State.Current)
+	parsedURL, err := url.Parse(l.State.URL)
+	if err != nil {
+		m = append(m, fmt.Sprintf("Unable to parse URL, might be malformed: %v (L3005)", err))
+		return
+	}
+	if parsedURL.Host == "" {
+		m = append(m, "URL does not start with http or https (L3006)")
+		return
+	}
+	if l.HTTPS && parsedURL.Scheme != "https" {
+		m = append(m, "URL is not using HTTPS scheme (L3007)")
+	}
+	// According to the EZproxy docs, 'Starting point URLs and config.txt',
+	// URL, Host, and HostJavaScript directives are checked for starting point URLs.
+	// URL origins should be checked against or added to PreviousOrigins.
+	// However, so many stanzas duplicate the URL in an HJ or H line that
+	// enabling the check below will add a lot of noise to the output.
+	// Possible to add behind a 'pedantic' flag later.
+	return m
+}
+
+func TrailingSpaceOrTabCheck(line string) bool {
+	if strings.HasSuffix(line, " ") || strings.HasSuffix(line, "\t") {
+		return true
+	}
+	return false
+}
+
+func TrimDirective(line string, directiveToTrim Directive) string {
+	for label, directive := range LabelToDirective {
+		if directive == directiveToTrim {
+			line = strings.TrimPrefix(line, label+" ")
+		}
+	}
+	return strings.TrimSpace(line)
 }
 
 func processSourceLine(sourceLine string) (string, string, error) {
@@ -507,20 +604,4 @@ func processSourceLine(sourceLine string) (string, string, error) {
 	}
 	f(doc)
 	return source, oclcTitle, nil
-}
-
-func TrailingSpaceOrTabCheck(line string) bool {
-	if strings.HasSuffix(line, " ") || strings.HasSuffix(line, "\t") {
-		return true
-	}
-	return false
-}
-
-func TrimDirective(line string, directiveToTrim Directive) string {
-	for label, directive := range LabelToDirective {
-		if directive == directiveToTrim {
-			line = strings.TrimPrefix(line, label+" ")
-		}
-	}
-	return strings.TrimSpace(line)
 }
