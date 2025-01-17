@@ -55,9 +55,6 @@ func (l *Linter) ProcessFile(filePath string) (warningCount int, err error) {
 	}
 	defer f.Close()
 
-	// Color output.
-	yellow := color.New(color.FgYellow).SprintFunc()
-
 	// Make a buffer of about 1 MB in size.
 	buf := make([]byte, 1048576)
 	// Make a scanner to go through the file line by line.
@@ -108,14 +105,14 @@ func (l *Linter) ProcessFile(filePath string) (warningCount int, err error) {
 			warningCount += len(warnings)
 			if l.State.LastLineEmpty {
 				// This will print any warnings that can only be checked after a stanza is closed, and apply to the whole stanza.
-				fmt.Fprintf(l.Output, "%v: %v\n", at, yellow(fmt.Sprintf("↑ %v", strings.Join(warnings, ", "))))
+				fmt.Fprintf(l.Output, "%v: %v\n", at, color.YellowString(fmt.Sprintf("↑ %v", strings.Join(warnings, ", "))))
 				// If we're printing the whole file, print the empty line we just processed without any warnings.
 				// This helps break up the annotated output with lines between stanzas.
 				if l.Annotate && more {
 					fmt.Fprintf(l.Output, "%v:\n", at)
 				}
 			} else {
-				fmt.Fprintf(l.Output, "%v: %v %v\n", at, line, yellow(fmt.Sprintf("← %v", strings.Join(warnings, ", "))))
+				fmt.Fprintf(l.Output, "%v: %v %v\n", at, line, color.YellowString(fmt.Sprintf("← %v", strings.Join(warnings, ", "))))
 			}
 		} else if l.Annotate && more {
 			fmt.Fprintf(l.Output, "%v: %v\n", at, line)
