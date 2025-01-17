@@ -3,6 +3,10 @@
 // license that can be found in the LICENSE file.
 package linter
 
+import (
+	"strings"
+)
+
 //go:generate stringer -type Directive --linecomment
 type Directive int
 
@@ -346,4 +350,12 @@ var LabelToDirective = map[string]Directive{ //nolint:gochecknoglobals
 	"UsageLimit":                                                                   UsageLimit,
 	"Validate":                                                                     Validate,
 	"XDebug":                                                                       XDebug,
+}
+
+var LowercaseLabelToDirective = map[string]Directive{} //nolint:gochecknoglobals
+
+func init() {
+	for label, directive := range LabelToDirective {
+		LowercaseLabelToDirective[strings.ToLower(label)] = directive
+	}
 }

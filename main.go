@@ -28,6 +28,8 @@ func main() {
 	annotate := flag.Bool("annotate", false, "Print all lines, not just lines that create warnings.")
 	verbose := flag.Bool("verbose", false, "Print internal state before each line is processed.")
 	whitespace := flag.Bool("whitespace", false, "Report on trailing space or tab characters.")
+	directiveCase := flag.Bool("case", false, "Report on directives having the wrong case.")
+	additionalPHEChecks := flag.Bool("phe", false, "Perform additional checks on ProxyHostnameEdit directives.")
 	https := flag.Bool("https", false, "Report on URL directives which do not use the HTTPS scheme.")
 	followIncludeFile := flag.Bool("follow-includefile", true, "Also process files referenced by IncludeFile directives.")
 	includeFileDirectory := flag.String("includefile-directory", "", "The directory from which the IncludeFile paths will be resolved. "+
@@ -50,6 +52,8 @@ func main() {
 		Annotate:             *annotate,
 		Verbose:              *verbose,
 		Whitespace:           *whitespace,
+		DirectiveCase:        *directiveCase,
+		AdditionalPHEChecks:  *additionalPHEChecks,
 		HTTPS:                *https,
 		FollowIncludeFile:    *followIncludeFile,
 		IncludeFileDirectory: *includeFileDirectory,

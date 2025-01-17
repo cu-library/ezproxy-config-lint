@@ -11,7 +11,7 @@ import (
 )
 
 func NewLinter() *linter.Linter {
-	l := &linter.Linter{Output: io.Discard, FollowIncludeFile: true}
+	l := &linter.Linter{Output: io.Discard, FollowIncludeFile: true, AdditionalPHEChecks: true}
 	if testing.Verbose() {
 		l.Output = os.Stdout
 	}

@@ -12,7 +12,7 @@ import (
 
 func TestLineEndingInSpace(t *testing.T) {
 	linter := Linter{Whitespace: true}
-	expected := []string{"Line ends in a space or tab character"}
+	expected := []string{"Line ends in a space or tab character (L5002)"}
 	messages := linter.ProcessLineAt("Title hello     ", "test:1")
 	if !reflect.DeepEqual(messages, expected) {
 		t.Fatalf("incorrect messages %v instead of %v", messages, expected)
@@ -115,8 +115,8 @@ func TestFindReplacePair(t *testing.T) {
 }
 
 func TestMisstyledDirective(t *testing.T) {
-	linter := Linter{State: State{}}
-	expected := []string{"Title directive improperly styled as TITLE"}
+	linter := Linter{DirectiveCase: true, State: State{}}
+	expected := []string{"\"TITLE\" directive does not have the right letter casing. It should be replaced by \"Title\" (L5001)"}
 	messages := linter.ProcessLineAt("TITLE Foo", "test:1")
 	if !reflect.DeepEqual(messages, expected) {
 		t.Fatalf("incorrect messages %v instead of %v", messages, expected)
@@ -125,7 +125,7 @@ func TestMisstyledDirective(t *testing.T) {
 
 func TestUnknownDirective(t *testing.T) {
 	linter := Linter{State: State{}}
-	expected := []string{"Unknown directive FooBar"}
+	expected := []string{"Unknown directive \"FooBar\" (L9001)"}
 	messages := linter.ProcessLineAt("FooBar Baz", "test:1")
 	if !reflect.DeepEqual(messages, expected) {
 		t.Fatalf("incorrect messages %v instead of %v", messages, expected)
