@@ -1,0 +1,8 @@
+AnonymousURL +https://*.onlinelibrary.wiley.com/action/*
+Option DomainCookieOnly
+Option X-Forwarded-For
+Title Wiley Online (OCLC IncludeFile updated 20241022)
+URL https://onlinelibrary.wiley.com/
+Option NoX-Forwarded-For
+Option Cookie
+AnonymousURL -*
