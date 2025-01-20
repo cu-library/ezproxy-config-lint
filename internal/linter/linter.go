@@ -435,7 +435,9 @@ func (l *Linter) ProcessTitle(line, at string) (m []string) {
 	} else {
 		l.PreviousTitles[l.State.Title] = at
 	}
-	if l.State.OCLCTitle != "" && l.State.Title != l.State.OCLCTitle {
+
+	titleWithHideRemoved := strings.TrimPrefix(l.State.Title, "-Hide ")
+	if l.State.OCLCTitle != "" && l.State.Title != l.State.OCLCTitle && titleWithHideRemoved != l.State.OCLCTitle {
 		m = append(m, "Source title doesn't match, you might need to update this stanza (L9002)")
 	}
 	return m
