@@ -131,3 +131,32 @@ func TestUnknownDirective(t *testing.T) {
 		t.Fatalf("incorrect messages %v instead of %v", messages, expected)
 	}
 }
+
+func TestFindURLFromLine(t *testing.T) {
+	var tests = []struct {
+		line     string
+		expected string
+	}{
+		{"Blag", ""},
+		{"UR http://www.somedb.com", ""},
+		{"URL http://www.somedb.com", "http://www.somedb.com"},
+		{"U http://www.somedb.com", "http://www.somedb.com"},
+		{"URL -Refresh a b", "b"},
+		{"U -Refresh a b", "b"},
+		{"URL -Redirect -Append -Encoded otherdb http://www.otherdb.com/search?q=", "http://www.otherdb.com/search?q="},
+		{"U -Redirect -Append -Encoded otherdb http://www.otherdb.com/search?q=", "http://www.otherdb.com/search?q="},
+		{"URL -Redirect -Append otherdb http://www.otherdb.com/search?q=", ""},
+		{"URL -Redirect -Encoded otherdb http://www.otherdb.com/search?q=", ""},
+		{"URL -Form=post somedb http://www.somedb.com/login.asp", "http://www.somedb.com/login.asp"},
+		{"U -Form=post somedb http://www.somedb.com/login.asp", "http://www.somedb.com/login.asp"},
+		{"URL -Form=post -RewriteHost somedb http://www.somedb.com/login.asp", "http://www.somedb.com/login.asp"},
+		{"U -Form=post -RewriteHost somedb http://www.somedb.com/login.asp", "http://www.somedb.com/login.asp"},
+	}
+
+	for _, tt := range tests {
+		urlQualifier := FindURLFromLine(tt.line)
+		if urlQualifier != tt.expected {
+			t.Fatalf("FindURLFromLine() fails on \"%v\", wanted \"%v\", got \"%v\".\n", tt.line, tt.expected, urlQualifier)
+		}
+	}
+}

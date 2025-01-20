@@ -30,6 +30,7 @@ Explanations of all checks in `ezproxy-config-lint`.
 | [L3006](#l3006) | `URL` does not start with `http` or `https`
 | [L3007](#l3007) | `URL` is not using HTTPS scheme
 | [L3008](#l3008) | `Option` directive not in the form `Option OPTIONNAME`
+| [L3009](#l3009) | `URL` directive is not in the right format
 | **L4**          | **Missing Directive Issues**
 | [L4001](#l4001) | Missing `AnonymousURL -*` clearing at end of stanza
 | [L4002](#l4002) | Missing `Option Cookie` at end of stanza
@@ -303,7 +304,7 @@ No URLs or path components should be used.
 
 #### Unable to parse `URL`
 
-The `URL` directive must be in the [URL (version 1)](https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_1), [URL (version 2)](https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_2), or [URL (version 3)](https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_3) format, and the URL must be parseable. Ensure line is not malformed.
+The URL part of this directive could not be parsed, check to see if it is malformed.
 
 ---------
 
@@ -328,6 +329,14 @@ This check is enabled with the `-https=true` option. The URL should use the `htt
 #### `Option` directive not in the form `Option OPTIONNAME`
 
 The `Option` directive needs a second part. You can see the list of options in the [OCLC documentation](https://help.oclc.org/Library_Management/EZproxy/Configure_resources).
+
+---------
+
+### L3009
+
+#### `URL` directive is not in the right format
+
+The `URL` directive must be in the [URL (version 1)](https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_1), [URL (version 2)](https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_2), or [URL (version 3)](https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_3) format. Ensure line is not malformed.
 
 
 ## L4 - Missing Directive Issues
