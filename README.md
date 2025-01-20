@@ -33,7 +33,7 @@ This software is still in early development. If you find bugs or want to request
 
 ## Example
 
-```bash
+```
 $ ls
 config.txt
 $ cat config.txt
@@ -83,7 +83,7 @@ $ ./ezproxy-config-lint -annotate ../config.txt
 
 ## Help
 
-## Checking for updates with 'Source'
+### Checking for updates with 'Source'
 
 The linter has a built-in way to check the OCLC website for updates to some database stanzas. If a comment is seen which matches the pattern "# Source - https://help.oclc.org/Library_Management/EZproxy/EZproxy_database_stanzas/...", the tool will check the stanza at the provided URL and pull out the `Title` directive. The tool will report if the stanza title in the config file does not match the stanza title from the OCLC website.
 
