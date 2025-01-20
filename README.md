@@ -55,7 +55,7 @@ Because the title directives do not match, the tool will report that you might w
 
 ## Status
 
-This software is still an early prototype, with lots of false positives, false negatives, and missing features. Please feel free to submit [issues](https://github.com/cu-library/ezproxy-config-lint/issues)!
+This software is still in early development. If you find bugs or want to request a missing feature, please feel free to submit [issues](https://github.com/cu-library/ezproxy-config-lint/issues)!
 
 ## Getting Started
 
