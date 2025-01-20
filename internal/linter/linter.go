@@ -14,6 +14,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -50,6 +51,10 @@ type Linter struct {
 	PreviousTitles       map[string]string
 	PreviousOrigins      map[string]string
 }
+
+var URLV1Regex = regexp.MustCompile(`(?i)^U(RL)?\s+(\S+)$`)
+var URLV2Regex = regexp.MustCompile(`(?i)^U(RL)?\s+(-Refresh )?\s*(-Redirect )?\s*(-Append -Encoded )?\s*(\S+)\s+(\S+)$`)
+var URLV3Regex = regexp.MustCompile(`(?i)^U(RL)?\s+(-Form)=([A-Za-z]+ )\s*(-RewriteHost )?\s*(\S+)\s+(\S+)$`)
 
 func (l *Linter) ProcessFile(filePath string) (warningCount int, err error) {
 	f, err := os.Open(filePath)
@@ -500,7 +505,12 @@ func (l *Linter) ProcessURL(line string) (m []string) {
 	if l.State.URL != "" {
 		m = append(m, "Duplicate URL directive in stanza (L2003)")
 	}
-	l.State.URL = TrimDirective(line, l.State.Current)
+
+	urlFromLine := FindURLFromLine(line)
+	if urlFromLine == "" {
+		m = append(m, "URL directive is not in the right format. (L3009)")
+	}
+	l.State.URL = urlFromLine
 	parsedURL, err := url.Parse(l.State.URL)
 	if err != nil {
 		m = append(m, fmt.Sprintf("Unable to parse URL, might be malformed: %v (L3005)", err))
@@ -520,6 +530,22 @@ func (l *Linter) ProcessURL(line string) (m []string) {
 	// enabling the check below will add a lot of noise to the output.
 	// Possible to add behind a 'pedantic' flag later.
 	return m
+}
+
+func FindURLFromLine(line string) (url string) {
+	urlV1Match := URLV1Regex.FindStringSubmatch(line)
+	if urlV1Match != nil {
+		return urlV1Match[len(urlV1Match)-1]
+	}
+	urlV2Match := URLV2Regex.FindStringSubmatch(line)
+	if urlV2Match != nil {
+		return urlV2Match[len(urlV2Match)-1]
+	}
+	urlV3Match := URLV3Regex.FindStringSubmatch(line)
+	if urlV3Match != nil {
+		return urlV3Match[len(urlV3Match)-1]
+	}
+	return ""
 }
 
 func TrailingSpaceOrTabCheck(line string) bool {
