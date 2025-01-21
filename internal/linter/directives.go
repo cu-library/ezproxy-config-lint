@@ -10,6 +10,7 @@ import (
 //go:generate stringer -type Directive --linecomment
 type Directive int
 
+//nolint:godot
 const (
 	Undefined Directive = iota
 	AddUserHeader
@@ -82,56 +83,56 @@ const (
 	MimeFilter
 	Name
 	NeverProxy
-	OptionAcceptXForwardedFor                                       // Option AcceptX-Forwarded-For.
-	OptionAllowWebSubdirectories                                    // Option AllowWebSubdirectories.
-	OptionAnyDNSHostname                                            // Option AnyDNSHostname.
-	OptionBlockCountryChange                                        // Option BlockCountryChange.
-	OptionCookie                                                    // Option Cookie.
-	OptionCookiePassThrough                                         // Option CookiePassThrough.
-	OptionCSRFToken                                                 // Option CSRFToken.
-	OptionDisableSSL40bit                                           // Option DisableSSL40bit.
-	OptionDisableSSL56bit                                           // Option DisableSSL56bit.
-	OptionDisableSSLv2                                              // Option DisableSSLv2.
-	OptionDomainCookieOnly                                          // Option DomainCookieOnly.
-	OptionEbraryUnencodedTokens                                     // Option ebraryUnencodedTokens.
-	OptionExcludeIPMenu                                             // Option ExcludeIPMenu.
-	OptionForceHTTPSAdmin                                           // Option ForceHTTPSAdmin.
-	OptionForceHTTPSLogin                                           // Option ForceHTTPSLogin.
-	OptionForceWildcardCertificate                                  // Option ForceWildcardCertificate.
-	OptionHideEZproxy                                               // Option HideEZproxy.
-	OptionHttpsHyphens                                              // Option HttpsHyphens.
-	OptionIChooseToUseDomainLinesThatThreatenTheSecurityOfMyNetwork // Option I choose to use Domain lines that threaten the security of my network.
-	OptionIgnoreWildcardCertificate                                 // Option IgnoreWildcardCertificate.
-	OptionIPv6                                                      // Option IPv6.
-	OptionLoginReplaceGroups                                        // Option LoginReplaceGroups.
-	OptionLogReferer                                                // Option LogReferer.
-	OptionLogSAML                                                   // Option LogSAML.
-	OptionLogSession                                                // Option LogSession.
-	OptionLogSPUEdit                                                // Option LogSPUEdit.
-	OptionLogUser                                                   // Option LogUser.
-	OptionMenuByGroups                                              // Option MenuByGroups.
-	OptionMetaEZproxyRewriting                                      // Option MetaEZproxyRewriting.
-	OptionNoCookie                                                  // Option NoCookie.
-	OptionNoHideEZproxy                                             // Option NoHideEZproxy.
-	OptionNoHttpsHyphens                                            // Option NoHttpsHyphens.
-	OptionNoMetaEZproxyRewriting                                    // Option NoMetaEZproxyRewriting.
-	OptionNoProxyFTP                                                // Option NoProxyFTP.
-	OptionNoUTF16                                                   // Option NoUTF16.
-	OptionNoXForwardedFor                                           // Option NoX-Forwarded-For.
-	OptionProxyByHostname                                           // Option ProxyByHostname.
-	OptionProxyFTP                                                  // Option ProxyFTP.
-	OptionRecordPeaks                                               // Option RecordPeaks.
-	OptionRedirectUnknown                                           // Option RedirectUnknown.
-	OptionReferInHostname                                           // Option ReferInHostname.
-	OptionRelaxedRADIUS                                             // Option RelaxedRADIUS.
-	OptionRequireAuthenticate                                       // Option RequireAuthenticate.
-	OptionSafariCookiePatch                                         // Option SafariCookiePatch.
-	OptionStatusUser                                                // Option StatusUser.
-	OptionTicketIgnoreExcludeIP                                     // Option TicketIgnoreExcludeIP.
-	OptionUnsafeRedirectUnknown                                     // Option UnsafeRedirectUnknown.
-	OptionUsernameCaretN                                            // Option UsernameCaretN.
-	OptionUTF16                                                     // Option UTF16.
-	OptionXForwardedFor                                             // Option X-Forwarded-For.
+	OptionAcceptXForwardedFor                                       // Option AcceptX-Forwarded-For
+	OptionAllowWebSubdirectories                                    // Option AllowWebSubdirectories
+	OptionAnyDNSHostname                                            // Option AnyDNSHostname
+	OptionBlockCountryChange                                        // Option BlockCountryChange
+	OptionCookie                                                    // Option Cookie
+	OptionCookiePassThrough                                         // Option CookiePassThrough
+	OptionCSRFToken                                                 // Option CSRFToken
+	OptionDisableSSL40bit                                           // Option DisableSSL40bit
+	OptionDisableSSL56bit                                           // Option DisableSSL56bit
+	OptionDisableSSLv2                                              // Option DisableSSLv2
+	OptionDomainCookieOnly                                          // Option DomainCookieOnly
+	OptionEbraryUnencodedTokens                                     // Option ebraryUnencodedTokens
+	OptionExcludeIPMenu                                             // Option ExcludeIPMenu
+	OptionForceHTTPSAdmin                                           // Option ForceHTTPSAdmin
+	OptionForceHTTPSLogin                                           // Option ForceHTTPSLogin
+	OptionForceWildcardCertificate                                  // Option ForceWildcardCertificate
+	OptionHideEZproxy                                               // Option HideEZproxy
+	OptionHttpsHyphens                                              // Option HttpsHyphens
+	OptionIChooseToUseDomainLinesThatThreatenTheSecurityOfMyNetwork // Option I choose to use Domain lines that threaten the security of my network
+	OptionIgnoreWildcardCertificate                                 // Option IgnoreWildcardCertificate
+	OptionIPv6                                                      // Option IPv6
+	OptionLoginReplaceGroups                                        // Option LoginReplaceGroups
+	OptionLogReferer                                                // Option LogReferer
+	OptionLogSAML                                                   // Option LogSAML
+	OptionLogSession                                                // Option LogSession
+	OptionLogSPUEdit                                                // Option LogSPUEdit
+	OptionLogUser                                                   // Option LogUser
+	OptionMenuByGroups                                              // Option MenuByGroups
+	OptionMetaEZproxyRewriting                                      // Option MetaEZproxyRewriting
+	OptionNoCookie                                                  // Option NoCookie
+	OptionNoHideEZproxy                                             // Option NoHideEZproxy
+	OptionNoHttpsHyphens                                            // Option NoHttpsHyphens
+	OptionNoMetaEZproxyRewriting                                    // Option NoMetaEZproxyRewriting
+	OptionNoProxyFTP                                                // Option NoProxyFTP
+	OptionNoUTF16                                                   // Option NoUTF16
+	OptionNoXForwardedFor                                           // Option NoX-Forwarded-For
+	OptionProxyByHostname                                           // Option ProxyByHostname
+	OptionProxyFTP                                                  // Option ProxyFTP
+	OptionRecordPeaks                                               // Option RecordPeaks
+	OptionRedirectUnknown                                           // Option RedirectUnknown
+	OptionReferInHostname                                           // Option ReferInHostname
+	OptionRelaxedRADIUS                                             // Option RelaxedRADIUS
+	OptionRequireAuthenticate                                       // Option RequireAuthenticate
+	OptionSafariCookiePatch                                         // Option SafariCookiePatch
+	OptionStatusUser                                                // Option StatusUser
+	OptionTicketIgnoreExcludeIP                                     // Option TicketIgnoreExcludeIP
+	OptionUnsafeRedirectUnknown                                     // Option UnsafeRedirectUnknown
+	OptionUsernameCaretN                                            // Option UsernameCaretN
+	OptionUTF16                                                     // Option UTF16
+	OptionXForwardedFor                                             // Option X-Forwarded-For
 	OverDriveSite
 	PDFRefresh
 	PDFRefreshPost
