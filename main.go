@@ -27,10 +27,11 @@ var version = "devel"
 func main() {
 	annotate := flag.Bool("annotate", false, "Print all lines, not just lines that create warnings.")
 	verbose := flag.Bool("verbose", false, "Print internal state before each line is processed.")
-	whitespace := flag.Bool("whitespace", false, "Report on trailing space or tab characters.")
-	directiveCase := flag.Bool("case", false, "Report on directives having the wrong case.")
 	additionalPHEChecks := flag.Bool("phe", false, "Perform additional checks on ProxyHostnameEdit directives.")
+	directiveCase := flag.Bool("case", false, "Report on directives having the wrong case.")
 	https := flag.Bool("https", false, "Report on URL directives which do not use the HTTPS scheme.")
+	source := flag.Bool("source", true, "Use source comments to check against OCLC stanzas.")
+	whitespace := flag.Bool("whitespace", false, "Report on trailing space or tab characters.")
 	followIncludeFile := flag.Bool("follow-includefile", true, "Also process files referenced by IncludeFile directives.")
 	includeFileDirectory := flag.String("includefile-directory", "", "The directory from which the IncludeFile paths will be resolved. "+
 		"By default, IncludeFile paths are resolved from the config file's directory, unless they are absolute paths.")
@@ -51,10 +52,11 @@ func main() {
 	linter := &linter.Linter{
 		Annotate:             *annotate,
 		Verbose:              *verbose,
-		Whitespace:           *whitespace,
-		DirectiveCase:        *directiveCase,
 		AdditionalPHEChecks:  *additionalPHEChecks,
+		DirectiveCase:        *directiveCase,
 		HTTPS:                *https,
+		Source:               *source,
+		Whitespace:           *whitespace,
 		FollowIncludeFile:    *followIncludeFile,
 		IncludeFileDirectory: *includeFileDirectory,
 		Output:               os.Stdout,

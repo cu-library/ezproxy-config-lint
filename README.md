@@ -60,6 +60,8 @@ ezproxy-config-lint: Lint config files for EZproxy
         The directory from which the IncludeFile paths will be resolved. By default, IncludeFile paths are resolved from the config file's directory, unless they are absolute paths.
   -phe
         Perform additional checks on ProxyHostnameEdit directives.
+  -source
+        Use source comments to check against OCLC stanzas. (default true)
   -verbose
         Print internal state before each line is processed.
   -whitespace
@@ -102,3 +104,5 @@ Title Docuseek2 (updated 20191015)
 ```
 
 Because the title directives do not match, the tool will report that you might want to update the stanza from the source.
+
+You can disable this feature by passing `-source=false`.

@@ -40,10 +40,11 @@ type State struct {
 type Linter struct {
 	Annotate             bool
 	Verbose              bool
-	Whitespace           bool
-	DirectiveCase        bool
 	AdditionalPHEChecks  bool
+	DirectiveCase        bool
 	HTTPS                bool
+	Source               bool
+	Whitespace           bool
 	FollowIncludeFile    bool
 	IncludeFileDirectory string
 	State                State
@@ -211,7 +212,7 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 
 	// Is the line a comment?
 	if strings.HasPrefix(line, "#") {
-		if strings.HasPrefix(line, "# Source - ") {
+		if strings.HasPrefix(line, "# Source - ") && l.Source {
 			source, oclcTitle, err := processSourceLine(line)
 			if err != nil {
 				m = append(m, fmt.Sprintf("Error processsing Source line (L9003): %v", err))
