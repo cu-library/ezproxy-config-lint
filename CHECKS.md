@@ -2,45 +2,46 @@
 
 Explanations of all checks in `ezproxy-config-lint`.
 
-| Check           | Short description
-|-----------------|------------------
-| **L1**          | **Ordering Issues**
-| [L1001](#l1001) | `Title` directive is out of order
-| [L1002](#l1002) | `URL` directive is out of order
-| [L1003](#l1003) | `AnonymousURL -*` directive is out of order
-| [L1004](#l1004) | `AnonymousURL` directive is out of order
-| [L1005](#l1005) | An Option 'opener' directive is out of order
-| [L1006](#l1006) | An Option 'closer' directive is out of order
-| [L1008](#l1008) | `ProxyHostnameEdit` directive is out of order
-| [L1009](#l1009) | `ProxyHostnameEdit` domains should be placed in deepest-to-shallowest order
-| [L1010](#l1010) | `URL` directive is before `Title` directive
-| **L2**          | **Duplication Issues**
-| [L2001](#l2001) | Duplicate `Title` directive in stanza
-| [L2002](#l2002) | Origin already seen
-| [L2003](#l2003) | Duplicate `URL` directive in stanza
-| [L2004](#l2004) | `Title` value already seen
-| **L3**          | **Malformation Issues**
-| [L3001](#l3001) | `ProxyHostnameEdit` directive must have both a find and replace qualifier
-| [L3002](#l3002) | Find part of `ProxyHostnameEdit` directive should end with a `$`
-| [L3003](#l3003) | Replace part of `ProxyHostnameEdit` directive is malformed
-| [L3004](#l3004) | `Domain` and `DomainJavaScript` directives should only specify domains
-| [L3005](#l3005) | Unable to parse `URL`
-| [L3006](#l3006) | `URL` does not start with `http` or `https`
-| [L3007](#l3007) | `URL` is not using HTTPS scheme
-| [L3008](#l3008) | `Option` directive not in the form `Option OPTIONNAME`
-| [L3009](#l3009) | `URL` directive is not in the right format
-| **L4**          | **Missing Directive Issues**
-| [L4001](#l4001) | Missing `AnonymousURL -*` clearing at end of stanza
-| [L4002](#l4002) | Missing Option at end of stanza
-| [L4003](#l4003) | Stanza has `Title` but no `URL`
-| [L4004](#l4004) | `Find` directive must be immediately proceeded with a `Replace` directive
-| **L5**          | **Styling Issues**
-| [L5001](#l5001) | Directive uses the wrong case.
-| [L5002](#l5002) | Line ends in a space or tab character.
-| **L9**          | **Other Issues**
-| [L9001](#l9001) | Unknown directive
-| [L9002](#l9002) | Source title doesn't match
-| [L9003](#l9003) | Error processing Source line
+<!-- ToC begin -->
+  - [L1 - Ordering Issues](#l1---ordering-issues)
+    - [L1001 - `Title` directive is out of order](#l1001---title-directive-is-out-of-order)
+    - [L1002 - `URL` directive is out of order](#l1002---url-directive-is-out-of-order)
+    - [L1003 - `AnonymousURL -*` directive is out of order](#l1003---anonymousurl---directive-is-out-of-order)
+    - [L1004 - `AnonymousURL` directive is out of order](#l1004---anonymousurl-directive-is-out-of-order)
+    - [L1005 - An Option 'opener' directive is out of order](#l1005---an-option-opener-directive-is-out-of-order)
+    - [L1006 - An Option 'closer' directive is out of order](#l1006---an-option-closer-directive-is-out-of-order)
+    - [L1008 - `ProxyHostnameEdit` directive is out of order](#l1008---proxyhostnameedit-directive-is-out-of-order)
+    - [L1009 - `ProxyHostnameEdit` domains should be placed in deepest-to-shallowest order](#l1009---proxyhostnameedit-domains-should-be-placed-in-deepest-to-shallowest-order)
+    - [L1010 - `URL` directive is before `Title` directive](#l1010---url-directive-is-before-title-directive)
+  - [L2 - Duplication Issues](#l2---duplication-issues)
+    - [L2001 - Duplicate `Title` directive in stanza](#l2001---duplicate-title-directive-in-stanza)
+    - [L2002 - Origin already seen](#l2002---origin-already-seen)
+    - [L2003 - Duplicate `URL` directive in stanza](#l2003---duplicate-url-directive-in-stanza)
+    - [L2004 - `Title` value already seen](#l2004---title-value-already-seen)
+  - [L3 - Malformation Issues](#l3---malformation-issues)
+    - [L3001 - `ProxyHostnameEdit` directive must have both a find and replace qualifier](#l3001---proxyhostnameedit-directive-must-have-both-a-find-and-replace-qualifier)
+    - [L3002 - Find part of `ProxyHostnameEdit` directive should end with a `$`](#l3002---find-part-of-proxyhostnameedit-directive-should-end-with-a-)
+    - [L3003 - Replace part of `ProxyHostnameEdit` directive is malformed](#l3003---replace-part-of-proxyhostnameedit-directive-is-malformed)
+    - [L3004 -  `Domain` and `DomainJavaScript` directives should only specify domains](#l3004----domain-and-domainjavascript-directives-should-only-specify-domains)
+    - [L3005 - Unable to parse `URL`](#l3005---unable-to-parse-url)
+    - [L3006 - `URL` does not start with `http` or `https`](#l3006---url-does-not-start-with-http-or-https)
+    - [L3007 -  `URL` is not using HTTPS scheme](#l3007----url-is-not-using-https-scheme)
+    - [L3008 - `Option` directive not in the form `Option OPTIONNAME`](#l3008---option-directive-not-in-the-form-option-optionname)
+    - [L3009 - `URL` directive is not in the right format](#l3009---url-directive-is-not-in-the-right-format)
+  - [L4 - Missing Directive Issues](#l4---missing-directive-issues)
+    - [L4001 - Missing `AnonymousURL -*` at end of stanza](#l4001---missing-anonymousurl---at-end-of-stanza)
+    - [L4002 - Missing Option at end of stanza](#l4002---missing-option-at-end-of-stanza)
+    - [L4003 - Stanza has `Title` but no `URL`](#l4003---stanza-has-title-but-no-url)
+    - [L4004 - `Find` directive must be immediately proceeded with a `Replace` directive](#l4004---find-directive-must-be-immediately-proceeded-with-a-replace-directive)
+  - [L5 - Styling Issues](#l5---styling-issues)
+    - [L5001 - Directive uses the wrong case.](#l5001---directive-uses-the-wrong-case)
+    - [L5002 - Line ends in a space or tab character.](#l5002---line-ends-in-a-space-or-tab-character)
+  - [L9 - Other Issues](#l9---other-issues)
+    - [L9001 - Unknown directive](#l9001---unknown-directive)
+    - [L9002 - Source title doesn't match](#l9002---source-title-doesnt-match)
+    - [L9003 - Error processing Source line](#l9003---error-processing-source-line)
+<!-- Generated by gh-toc, https://moonbase59.github.io/gh-toc/ -->
+<!-- ToC end -->
 
 ## L1 - Ordering Issues
 
@@ -309,7 +310,6 @@ The `Option` directive needs a second part. You can see the list of options in t
 
 The `URL` directive must be in the [URL (version 1)](https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_1), [URL (version 2)](https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_2), or [URL (version 3)](https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_3) format. Ensure line is not malformed.
 
-
 ## L4 - Missing Directive Issues
 
 ### L4001 - Missing `AnonymousURL -*` at end of stanza
@@ -365,9 +365,6 @@ The directive was found, but it does not use the normal case. For example, TITLE
 This check is enabled with the `-whitespace=true` option.
 
 Trailing whitespace characters space or tab were found on this line.
-
----------
-
 
 ## L9 - Other Issues
 
