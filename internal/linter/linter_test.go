@@ -80,7 +80,7 @@ func TestTrailingSpaceOrTabCheck(t *testing.T) {
 	for _, tt := range tests {
 		problem := TrailingSpaceOrTabCheck(tt.line)
 		if problem != tt.expected {
-			t.Fatalf("TrailingSpaceOrTabCheck() fails on \"%v\", wanted %v, got %v.\n", tt.line, tt.expected, problem)
+			t.Fatalf("TrailingSpaceOrTabCheck() fails on %q, wanted %v, got %v.\n", tt.line, tt.expected, problem)
 		}
 	}
 }
@@ -156,7 +156,7 @@ func TestFindURLFromLine(t *testing.T) {
 	for _, tt := range tests {
 		urlQualifier := FindURLFromLine(tt.line)
 		if urlQualifier != tt.expected {
-			t.Fatalf("FindURLFromLine() fails on \"%v\", wanted \"%v\", got \"%v\".\n", tt.line, tt.expected, urlQualifier)
+			t.Fatalf("FindURLFromLine() fails on %q, wanted %q, got %q.\n", tt.line, tt.expected, urlQualifier)
 		}
 	}
 }
