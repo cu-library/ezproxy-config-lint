@@ -9,20 +9,18 @@ Explanations of all checks in `ezproxy-config-lint`.
 | [L1002](#l1002) | `URL` directive is out of order
 | [L1003](#l1003) | `AnonymousURL -*` directive is out of order
 | [L1004](#l1004) | `AnonymousURL` directive is out of order
-| [L1005](#l1005) | `Option Cookie` directive is out of order
-| [L1006](#l1006) | `Option CookiePassThrough` directive is out of order
-| [L1007](#l1007) | `Option DomainCookieOnly` directive is out of order
+| [L1005](#l1005) | An Option 'opener' directive is out of order
+| [L1006](#l1006) | An Option 'closer' directive is out of order
 | [L1008](#l1008) | `ProxyHostnameEdit` directive is out of order
 | [L1009](#l1009) | `ProxyHostnameEdit` domains should be placed in deepest-to-shallowest order
 | [L1010](#l1010) | `URL` directive is before `Title` directive
-| [L1011](#l1011) | `Option Cookie` directive should not preceed closing AnonymousURL
 | **L2**          | **Duplication Issues**
 | [L2001](#l2001) | Duplicate `Title` directive in stanza
 | [L2002](#l2002) | Origin already seen
 | [L2003](#l2003) | Duplicate `URL` directive in stanza
 | [L2004](#l2004) | `Title` value already seen
 | **L3**          | **Malformation Issues**
-| [L3001](#l3001) | `ProxyHostnameEdit` directive must have two values
+| [L3001](#l3001) | `ProxyHostnameEdit` directive must have both a find and replace qualifier
 | [L3002](#l3002) | Find part of `ProxyHostnameEdit` directive should end with a `$`
 | [L3003](#l3003) | Replace part of `ProxyHostnameEdit` directive is malformed
 | [L3004](#l3004) | `Domain` and `DomainJavaScript` directives should only specify domains
@@ -33,7 +31,7 @@ Explanations of all checks in `ezproxy-config-lint`.
 | [L3009](#l3009) | `URL` directive is not in the right format
 | **L4**          | **Missing Directive Issues**
 | [L4001](#l4001) | Missing `AnonymousURL -*` clearing at end of stanza
-| [L4002](#l4002) | Missing `Option Cookie` at end of stanza
+| [L4002](#l4002) | Missing Option at end of stanza
 | [L4003](#l4003) | Stanza has `Title` but no `URL`
 | [L4004](#l4004) | `Find` directive must be immediately proceeded with a `Replace` directive
 | **L5**          | **Styling Issues**
@@ -46,37 +44,37 @@ Explanations of all checks in `ezproxy-config-lint`.
 
 ## L1 - Ordering Issues
 
-### L1001
-
-#### `Title` directive is out of order
+### L1001 - `Title` directive is out of order
 
 The `Title` directive are only allowed to follow these directives:
 
-* `AddUserHeader`
 * `Group`
 * `HTTPMethod`
-* `Option CookiePassThrough`
-* `Option DomainCookieOnly`
-* `Option X-Forwarded-For`
-* `Cookie`
-* `Option ebraryUnencodedTokens`
+* `AnonymousURL`
 * `ProxyHostnameEdit`
 * `Referer`
-
-Additionally, a `Title` will be considered out of order when
-[L4001](#l4001) or [L4002](#l4002) are detected.
+* `Cookie`
+* `AddUserHeader`
+* `OptionEbraryUnencodedTokens`
+* `Option DomainCookieOnly`
+* `Option NoCookie`
+* `Option CookiePassThrough`
+* `Option HideEZproxy`
+* `Option NoHttpsHyphens`
+* `Option MetaEZproxyRewriting`
+* `Option ProxyFTP`
+* `Option UTF16`
+* `Option X-Forwarded-For`
 
 ---------
 
-### L1002
-
-#### `URL` directive is out of order
+### L1002 - `URL` directive is out of order
 
 The `URL` directive are only allowed to follow these directives:
 
 * `AllowVars`
 * `EBLSecret`
-* `EbrarySite`
+* `EbrarySit`
 * `EncryptVar`
 * `HTTPHeader`
 * `MimeFilter`
@@ -84,104 +82,118 @@ The `URL` directive are only allowed to follow these directives:
 
 ---------
 
-### L1003
-
-#### `AnonymousURL -*` directive is out of order
+### L1003 - `AnonymousURL -*` directive is out of order
 
 The `AnonymousURL -*` directive is only allowed to follow these directives:
 
-* `DomainJavaScript`
-* `Domain`
-* `HostJavaScript`
-* `Host`
-* `Replace`
 * `URL`
+* `Host`
+* `HostJavaScript`
+* `Domain`
+* `DomainJavaScript`
+* `Replace`
+* `AnonymousURL`
 * `NeverProxy`
+* `ProxyHostnameEdit`
 * `Option Cookie`
-* `Option NoX-Forwarded-For`
+* `Option NoHideEZproxy`
+* `Option HttpsHyphens`
+* `Option NoMetaEZproxyRewriting`
+* `Option NoProxyFTP`
+* `Option NoUTF16`
+* `Option NoXForwardedFor`
 
 ---------
 
-### L1004
+### L1004 - `AnonymousURL` directive is out of order
 
-#### `AnonymousURL` directive is out of order
-
-Except for the ending `AnonymousURL -*` usage (see [L1003](#l1003]),
+Except for the ending `AnonymousURL -*` usage (see [L1003](#l1003])),
 the `AnonymousURL` directive is only allowed to follow these directives:
 
-* `AnonymousURL`
 * `Group`
 * `HTTPMethod`
-* `Option CookiePassThrough`
-* `Option Cookie`
-* `Option DomainCookieOnly`
-* `Option X-Forwarded-For`
-* `ProxyHostnameEdit`
-
----------
-
-### L1005
-
-#### `Option Cookie` directive is out of order
-
-The `Option Cookie` directive is only allowed to follow these directives at the beginning of the stanza:
-
-* `Group`
-* `HTTPMethod`
-* `Option X-Forwarded-For`
-* `AnonymousURL`
-
-The directive should also be used at the end of the stanza to ensure other cookie handling options do not impact other stanzas.
-
----------
-
-### L1006
-
-#### `Option CookiePassThrough` directive is out of order
-
-The `Option CookiePassThrough` directive is only allowed to follow these directives:
-
-* `Group`
-* `HTTPMethod`
-* `Option X-Forwarded-For`
-* `AnonymousURL`
-
----------
-
-### L1007
-
-#### `Option DomainCookieOnly` directive is out of order
-
-The `Option DomainCookieOnly` directive is only allowed to follow these
-directives:
-
-* `Group`
-* `HTTPMethod`
-* `Option X-Forwarded-For`
-* `AnonymousURL`
-
----------
-
-### L1008
-
-#### `ProxyHostnameEdit` directive is out of order
-
-The `ProxyHostnameEdit` directive is only allowed to follow these directives:
-
-* `Group`
-* `HTTPMethod`
-* `Option Cookie`
-* `Option CookiePassThrough`
-* `Option DomainCookieOnly`
-* `Option X-Forwarded-For`
 * `AnonymousURL`
 * `ProxyHostnameEdit`
+* `Option DomainCookieOnly`
+* `Option NoCookie`
+* `Option CookiePassThrough`
+* `Option HideEZproxy`
+* `Option NoHttpsHyphens`
+* `Option MetaEZproxyRewriting`
+* `Option ProxyFTP`
+* `Option UTF16`
+* `Option X-Forwarded-For`
 
 ---------
 
-### L1009
+### L1005 - An Option 'opener' directive is out of order
 
-#### `ProxyHostnameEdit` domains should be placed in deepest-to-shallowest order
+* `Option DomainCookieOnly`
+* `Option NoCookie`
+* `Option CookiePassThrough`
+* `Option HideEZproxy`
+* `Option NoHttpsHyphens`
+* `Option MetaEZproxyRewriting`
+* `Option ProxyFTP`
+* `Option UTF16`
+* `Option X-Forwarded-For`
+
+directives are only allowed to follow other 'opener' directives and:
+
+* `Group`
+* `HTTPMethod`
+* `AnonymousURL`
+
+'Opener' directives are Option directives which have a corresponding 'closer' Option directive. See [L4002](#l4002]) for more information.
+
+---------
+
+### L1006 - An Option 'closer' directive is out of order
+
+* `Option Cookie`
+* `Option NoHideEZproxy`
+* `Option HttpsHyphens`
+* `Option NoMetaEZproxyRewriting`
+* `Option NoProxyFTP`
+* `Option NoUTF16`
+* `Option NoX-Forwarded-For`
+
+directives are only allowed to follow other 'closer' directives and:
+
+* `URL`
+* `Host`
+* `HostJavaScript`
+* `Domain`
+* `DomainJavaScript`
+* `Replace`
+* `AnonymousURL`
+* `NeverProxy`
+
+'Closer' directives are Option directives which have a corresponding 'opener' Option directive. See [L4002](#l4002]) for more information.
+
+---------
+
+### L1008 - `ProxyHostnameEdit` directive is out of order
+
+The `ProxyHostnameEdit` directive is only allowed to follow the following directives:
+
+* `Group`
+* `HTTPMethod`
+* `AnonymousURL`
+* `ProxyHostnameEdit`
+* `Option DomainCookieOnly`
+* `Option NoCookie`
+* `Option CookiePassThrough`
+* `Option HideEZproxy`
+* `Option NoHttpsHyphens`
+* `Option MetaEZproxyRewriting`
+* `Option ProxyFTP`
+* `Option UTF16`
+* `Option X-Forwarded-For`
+
+---------
+
+### L1009 - `ProxyHostnameEdit` domains should be placed in deepest-to-shallowest order
 
 This check is enabled with the `-phe=true` option.
 
@@ -203,43 +215,19 @@ but a.short.domain.ca is four components deep.
 
 ---------
 
-### L1010
-
-#### `URL` directive is before `Title` directive
+### L1010 - `URL` directive is before `Title` directive
 
 The `URL` directive should always come after the `Title` is a given stanza.
 
----------
-
-### L1011
-
-#### `Option Cookie` directive
-
-The `Option Cookie` directive, when used at the end of a stanza to prevent other cookie handling options from impacting other stanzas, is only allowed to follow the following directives:
-
-* `URL`
-* `Host`
-* `HostJavaScript`
-* `Domain`
-* `DomainJavaScript`
-* `Replace`
-* `AnonymousURL`
-* `Option NoX-Forwarded-For`
-
-
 ## L2 - Duplication Issues
 
-### L2001
-
-#### Duplicate `Title` directive in stanza
+### L2001 - Duplicate `Title` directive in stanza
 
 More than one `Title` directive present in a stanza.
 
 ---------
 
-### L2002
-
-#### Origin already seen
+### L2002 - Origin already seen
 
 EZproxy [only reads origins and does not read paths](https://help.oclc.org/Library_Management/EZproxy/Configure_resources/Groups).
 The origin is the combination of the scheme (http or https), the host (google.com, help.oclc.org), and the port.
@@ -248,162 +236,150 @@ The linter will report if you've already used an origin, so that you can ensure 
 
 ---------
 
-### L2003
-
-#### Duplicate `URL` directive in stanza
+### L2003 - Duplicate `URL` directive in stanza
 
 More than one `URL` directive present in a stanza.
 
 ---------
 
-### L2004
-
-#### `Title` value already seen
+### L2004 - `Title` value already seen
 
 The linter tracks stanza `Title` values and reports when a value has been seen more than
 once.
 
-
 ## L3 - Malformation Issues
 
-### L3001
-
-#### `ProxyHostnameEdit` directive must have two values
+### L3001 - `ProxyHostnameEdit` directive must have both a find and replace qualifier
 
 The `ProxyHostnameEdit` directive requires two qualifiers.
 See [OCLC Documentation](https://help.oclc.org/Library_Management/EZproxy/Configure_resources/ProxyHostnameEdit) for more details.
 
 ---------
 
-### L3002
+### L3002 - Find part of `ProxyHostnameEdit` directive should end with a `$`
 
-#### Find part of `ProxyHostnameEdit` directive should end with a `$`
+This check is enabled with the `-phe=true` option.
 
-This check is enabled with the `-phe=true` option. The first qualifier to `ProxyHostnameEdit`, *find*, is a regular expression and should end in a dollar sign (`$`) to match the end of the string.
-
----------
-
-### L3003
-
-#### Replace part of `ProxyHostnameEdit` directive is malformed
-
-This check is enabled with the `-phe=true` option. To make redirects from HTTP to HTTPS links more reliable, this check ensures that the *find* and *replace* qualifiers correspond with each other: *replace* should just be *find*, but with the trailing `$` removed and the periods replaced with hypens.
+The first qualifier to `ProxyHostnameEdit`, *find*, is a regular expression and should end in a dollar sign (`$`) to match the end of the string.
 
 ---------
 
-### L3004
+### L3003 - Replace part of `ProxyHostnameEdit` directive is malformed
 
-#### `Domain` and `DomainJavaScript` directives should only specify domains
+This check is enabled with the `-phe=true` option.
+
+To make redirects from HTTP to HTTPS links more reliable, this check ensures that the *find* and *replace* qualifiers correspond with each other: *replace* should just be *find*, but with the trailing `$` removed and the periods replaced with hypens. For example, `home.heinonline.org$` corresponds with `home-heinonline-org`.
+
+---------
+
+### L3004 -  `Domain` and `DomainJavaScript` directives should only specify domains
 
 The `Domain` and `DomainJavaScript` directives should only specify domains.
 No URLs or path components should be used.
 
 ---------
 
-### L3005
-
-#### Unable to parse `URL`
+### L3005 - Unable to parse `URL`
 
 The URL part of this directive could not be parsed, check to see if it is malformed.
 
 ---------
 
-### L3006
-
-#### `URL` does not start with `http` or `https`
+### L3006 - `URL` does not start with `http` or `https`
 
 The scheme/protocol of the URL should be specified, and it should either be `http` or `https`.
 
 ---------
 
-### L3007
+### L3007 -  `URL` is not using HTTPS scheme
 
-#### `URL` is not using HTTPS scheme
+This check is enabled with the `-https=true` option.
 
-This check is enabled with the `-https=true` option. The URL should use the `https` scheme/protocol.
+The URL should use the `https` scheme/protocol.
 
 ---------
 
-### L3008
-
-#### `Option` directive not in the form `Option OPTIONNAME`
+### L3008 - `Option` directive not in the form `Option OPTIONNAME`
 
 The `Option` directive needs a second part. You can see the list of options in the [OCLC documentation](https://help.oclc.org/Library_Management/EZproxy/Configure_resources).
 
 ---------
 
-### L3009
-
-#### `URL` directive is not in the right format
+### L3009 - `URL` directive is not in the right format
 
 The `URL` directive must be in the [URL (version 1)](https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_1), [URL (version 2)](https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_2), or [URL (version 3)](https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_3) format. Ensure line is not malformed.
 
 
 ## L4 - Missing Directive Issues
 
-### L4001
-
-#### Missing `AnonymousURL -*` at end of stanza
+### L4001 - Missing `AnonymousURL -*` at end of stanza
 
 Stanzas which use a AnonymousURL directive should include a `AnonymousURL -*` line at the end of the stanza so that other stanzas in the config file are not impacted.
 
 ---------
 
-### L4002
+### L4002 - Missing Option at end of stanza
 
-#### Missing `Option Cookie` at end of stanza
+Stanzas which use options like `Option X-Forwarded-For` or `Option DomainCookieOnly` need to have a corresponding option like `Option NoX-Forwarded-For` or `Option Cookie` at the end of the stanza to ensure these options do not impact other stanzas.
 
-Stanzas which use a Option DomainCookieOnly or Option CookiePassthrough directive should include a `Option Cookie` line at the end of the stanza so that other stanzas in the config file are not impacted.
+Here's the table of 'opener' and 'closer' Option directives:
+
+|Opener|Closer|
+|---|---|
+| Option DomainCookieOnly | Option Cookie |
+| Option NoCookie | Option Cookie |
+| Option CookiePassThrough | Option Cookie |
+| Option HideEZproxy | Option NoHideEZproxy |
+| Option NoHttpsHyphens | Option HttpsHyphens |
+| Option MetaEZproxyRewriting | Option NoMetaEZproxyRewriting |
+| Option ProxyFTP | Option NoProxyFTP |
+| Option UTF16 | Option NoUTF16 |
+| Option X-Forwarded-For | OptionNoXForwardedFor |
 
 ---------
 
-### L4003
-
-#### Stanza has `Title` but no `URL`
+### L4003 - Stanza has `Title` but no `URL`
 
 Stanzas should have both a Title and a URL directive.
 
 ---------
 
-### L4004
-
-#### `Find` directive must be immediately proceeded with a `Replace` directive
+### L4004 - `Find` directive must be immediately proceeded with a `Replace` directive
 
 From the [OCLC documentation](https://help.oclc.org/Library_Management/EZproxy/Configure_resources/Find_Replace):
 
 "These directives always appear paired together, with Find appearing directly before its corresponding Replace."
 
-
 ## L5 - Styling Issues
 
-### L5001
+### L5001 - Directive uses the wrong case.
 
-#### Directive uses the wrong case.
+This check is enabled with the `-case=true` option.
 
-This check is enabled with the `-case=true` option. The directive was found, but it does not use the normal case. For example, TITLE instead of Title, or HTTPheader instead of HTTPHeader.
+The directive was found, but it does not use the normal case. For example, TITLE instead of Title, or HTTPheader instead of HTTPHeader.
 
-### L5002
+---------
 
-#### Line ends in a space or tab character.
+### L5002 - Line ends in a space or tab character.
 
-This check is enabled with the `-whitespace=true` option. Trailing whitespace characters space or tab were found on this line.
+This check is enabled with the `-whitespace=true` option.
+
+Trailing whitespace characters space or tab were found on this line.
 
 ---------
 
 
 ## L9 - Other Issues
 
-### L9001
-
-#### Unknown directive
+### L9001 - Unknown directive
 
 An unknown directive was encountered. This can be caused by a typo in the directive. You can check the list of possible directives in the [OCLC documentation](https://help.oclc.org/Library_Management/EZproxy/Configure_resources).
 
 ---------
 
-### L9002
+### L9002 - Source title doesn't match
 
-#### Source title doesn't match
+This check is disabled with the `-source=false` option.
 
 The linter has a built-in way to check the OCLC website for updates to some database stanzas.
 If a comment is seen which matches the pattern `# Source - https://help.oclc.org/Library_Management/EZproxy/EZproxy_database_stanzas/...`,
@@ -427,8 +403,8 @@ Title Docuseek2 (updated 20191015)
 
 Because the `Title` directives do not match, the tool will report that you might want to update the stanza from the source.
 
-### L9003
+---------
 
-#### Error processing Source line
+### L9003 - Error processing Source line
 
 There was some problem processing the Source line. The URL might be malformed, or there was an HTTP request issue.

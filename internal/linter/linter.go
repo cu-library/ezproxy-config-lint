@@ -10,11 +10,13 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"maps"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 
@@ -24,7 +26,7 @@ import (
 
 type State struct {
 	AnonymousURLNeedsClosing  bool
-	CookieOptionNeedsClosing  bool
+	OpenOptions               []Directive
 	InMultiline               bool
 	LastLineEmpty             bool
 	OCLCTitle                 string
@@ -51,6 +53,28 @@ type Linter struct {
 	Output               io.Writer
 	PreviousTitles       map[string]string
 	PreviousOrigins      map[string]string
+}
+
+func OptionPairs() map[Directive]Directive {
+	return map[Directive]Directive{
+		OptionDomainCookieOnly:     OptionCookie,
+		OptionNoCookie:             OptionCookie,
+		OptionCookiePassThrough:    OptionCookie,
+		OptionHideEZproxy:          OptionNoHideEZproxy,
+		OptionNoHttpsHyphens:       OptionHttpsHyphens,
+		OptionMetaEZproxyRewriting: OptionNoMetaEZproxyRewriting,
+		OptionProxyFTP:             OptionNoProxyFTP,
+		OptionUTF16:                OptionNoUTF16,
+		OptionXForwardedFor:        OptionNoXForwardedFor,
+	}
+}
+
+func OpenerOptions() []Directive {
+	return slices.Collect(maps.Keys(OptionPairs()))
+}
+
+func CloserOptions() []Directive {
+	return slices.Collect(maps.Values(OptionPairs()))
 }
 
 var URLV1Regex = regexp.MustCompile(`(?i)^U(RL)?\s+(\S+)$`)
@@ -141,12 +165,12 @@ func (l *Linter) ProcessFile(filePath string) (warningCount int, err error) {
 			if !filepath.IsAbs(includeFilePath) {
 				if l.IncludeFileDirectory != "" {
 					includeFilePath = filepath.Join(l.IncludeFileDirectory, includeFilePath)
-					help = fmt.Sprintf("The '-includefile-directory' option was used, joined %v with %v", l.IncludeFileDirectory, includeFilePath)
+					help = fmt.Sprintf("The \"-includefile-directory\" option was used, joined \"%v\" with \"%v\"", l.IncludeFileDirectory, includeFilePath)
 				} else {
 					filePathDir := filepath.Dir(filePath)
 					includeFilePath = filepath.Join(filePathDir, includeFilePath)
-					help += fmt.Sprintf("This IncludeFile directive is in a config file at this path: %v\n", filePath)
-					help += fmt.Sprintf("            The IncludeFile directive resolves to this path: %v", includeFilePath)
+					help += fmt.Sprintf("This IncludeFile directive is in a config file at this path: \"%v\"\n", filePath)
+					help += fmt.Sprintf("            The IncludeFile directive resolves to this path: \"%v\"", includeFilePath)
 				}
 			}
 
@@ -156,7 +180,7 @@ func (l *Linter) ProcessFile(filePath string) (warningCount int, err error) {
 				log.Printf("Error encountered when processing line \"%v\".\n", line)
 				log.Println(help)
 				if l.IncludeFileDirectory == "" {
-					log.Println("You might want to try the '-includefile-directory' option.")
+					log.Println("You might want to try the \"-includefile-directory\" option.")
 				}
 				return warningCount, err
 			}
@@ -172,6 +196,11 @@ func (l *Linter) ProcessFile(filePath string) (warningCount int, err error) {
 }
 
 func (l *Linter) ProcessLineAt(line, at string) (m []string) {
+	// Get the OptionPairs which need to be closed.
+	optionPairs := OptionPairs()
+	openers := OpenerOptions()
+	closers := CloserOptions()
+
 	// Initialize maps if they are still nil.
 	if l.PreviousTitles == nil {
 		l.PreviousTitles = make(map[string]string)
@@ -198,9 +227,11 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 			m = append(m, fmt.Sprintf("Stanza \"%v\" has AnonymousURL but doesn't have a corresponding \"AnonymousURL -*\" "+
 				"line at the end of the stanza (L4001)", l.State.Title))
 		}
-		if l.State.CookieOptionNeedsClosing {
-			m = append(m, fmt.Sprintf("Stanza \"%v\" has \"Option DomainCookieOnly\" or \"Option CookiePassthrough\" "+
-				"but doesn't have a corresponding \"Option Cookie\" line at the end of the stanza (L4002)", l.State.Title))
+		if len(l.State.OpenOptions) != 0 {
+			for _, option := range l.State.OpenOptions {
+				m = append(m, fmt.Sprintf("Stanza \"%v\" has \"%v\" but doesn't have a "+
+					"corresponding \"%v\" line at the end of the stanza (L4002)", l.State.Title, option, optionPairs[option]))
+			}
 		}
 		// Reset the stanza state.
 		l.State = State{LastLineEmpty: true}
@@ -242,7 +273,7 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 	// Option directives have two parts.
 	if label == "Option" {
 		if len(split) != 2 {
-			m = append(m, "Option directive not in the form Option OPTIONNAME (L3008)")
+			m = append(m, "Option directive not in the form \"Option OPTIONNAME\" (L3008)")
 			return m
 		}
 		label = line
@@ -266,17 +297,18 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 	// Without this, we would need to check that the previous
 	// directive was not Find on every directive other than Replace.
 	if l.State.Previous == Find && directive != Replace {
-		m = append(m, "Find directive must be immediately proceeded with a Replace directive (L4004)")
+		m = append(m, "\"Find\" directive must be immediately proceeded with a \"Replace\" directive (L4004)")
 	}
 
-	// Process each directive.
+	// Process Option Pair directives.
+	if slices.Contains(openers, directive) {
+		m = append(m, l.ProcessOptionOpener(line)...)
+	} else if slices.Contains(closers, directive) {
+		m = append(m, l.ProcessOptionCloser(line)...)
+	}
+
+	// Process other directives.
 	switch directive {
-	case OptionCookie:
-		m = append(m, l.ProcessOptionCookie(line)...)
-	case OptionCookiePassThrough:
-		m = append(m, l.ProcessOptionCookiePassThrough(line)...)
-	case OptionDomainCookieOnly:
-		m = append(m, l.ProcessOptionDomainCookieOnly(line)...)
 	case ProxyHostnameEdit:
 		m = append(m, l.ProcessProxyHostnameEdit(line)...)
 	case AnonymousURL:
@@ -294,54 +326,42 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 	return m
 }
 
-// ProcessOptionCookie processes the line containing the Option Cookie directive.
-// OCLC documentation:
-// https://help.oclc.org/Library_Management/EZproxy/Configure_resources/Option_Cookie_Option_DomainCookieOnly_Option_NoCookie_Option_CookiePassThrough
-func (l *Linter) ProcessOptionCookie(line string) (m []string) {
-	if l.State.CookieOptionNeedsClosing {
-		switch l.State.Previous {
-		case URL, Host, HostJavaScript, Domain, DomainJavaScript, Replace, AnonymousURL, OptionNoXForwardedFor:
-			// OptionCookie, when closing a stanza, is allowed after these directives.
-		default:
-			m = append(m, fmt.Sprintf("Option Cookie directive is out of order, previous directive: \"%v\" (L1011)", l.State.Previous))
-		}
-		l.State.CookieOptionNeedsClosing = false
-	} else {
-		switch l.State.Previous {
-		case Undefined, Group, HTTPMethod, OptionXForwardedFor, AnonymousURL:
-			// OptionCookie is allowed after these directives.
-		default:
-			m = append(m, fmt.Sprintf("Option Cookie directive is out of order, previous directive: \"%v\" (L1005)", l.State.Previous))
-		}
+// ProcessOptionOpener processes the line containing an Option which will need to be closed later.
+func (l *Linter) ProcessOptionOpener(line string) (m []string) {
+	allowedPreviousDirectives := []Directive{
+		Undefined,
+		Group,
+		HTTPMethod,
+		AnonymousURL,
 	}
+	allowedPreviousDirectives = append(allowedPreviousDirectives, OpenerOptions()...)
+	if !slices.Contains(allowedPreviousDirectives, l.State.Previous) {
+		m = append(m, fmt.Sprintf("\"%v\" directive is out of order, previous directive: \"%v\" (L1005)", l.State.Current, l.State.Previous))
+	}
+	l.State.OpenOptions = append(l.State.OpenOptions, l.State.Current)
 	return m
 }
 
-// ProcessOptionCookiePassThrough processes the line containing the Option CookiePassThrough directive.
-// OCLC documentation:
-// https://help.oclc.org/Library_Management/EZproxy/Configure_resources/Option_Cookie_Option_DomainCookieOnly_Option_NoCookie_Option_CookiePassThrough
-func (l *Linter) ProcessOptionCookiePassThrough(line string) (m []string) {
-	switch l.State.Previous {
-	case Undefined, Group, HTTPMethod, OptionXForwardedFor, AnonymousURL:
-		// OptionCookiePassThrough is allowed after these directives.
-	default:
-		m = append(m, fmt.Sprintf("Option CookiePassThrough directive is out of order, previous directive: \"%v\" (L1006)", l.State.Previous))
+// ProcessOptionCloser processes the line containing an Option which closes an 'Opener' option.
+func (l *Linter) ProcessOptionCloser(line string) (m []string) {
+	optionPairs := OptionPairs()
+	allowedPreviousDirectives := []Directive{
+		URL,
+		Host,
+		HostJavaScript,
+		Domain,
+		DomainJavaScript,
+		Replace,
+		AnonymousURL,
+		NeverProxy,
 	}
-	l.State.CookieOptionNeedsClosing = true
-	return m
-}
-
-// ProcessOptionDomainCookieOnly processes the line containing the Option DomainCookieOnly directive.
-// OCLC documentation:
-// https://help.oclc.org/Library_Management/EZproxy/Configure_resources/Option_Cookie_Option_DomainCookieOnly_Option_NoCookie_Option_CookiePassThrough
-func (l *Linter) ProcessOptionDomainCookieOnly(line string) (m []string) {
-	switch l.State.Previous {
-	case Undefined, Group, HTTPMethod, OptionXForwardedFor, AnonymousURL:
-		// OptionDomainCookieOnly is allowed after these directives.
-	default:
-		m = append(m, fmt.Sprintf("Option DomainCookieOnly directive is out of order, previous directive: \"%v\" (L1007)", l.State.Previous))
+	allowedPreviousDirectives = append(allowedPreviousDirectives, CloserOptions()...)
+	if !slices.Contains(allowedPreviousDirectives, l.State.Previous) {
+		m = append(m, fmt.Sprintf("\"%v\" directive is out of order, previous directive: \"%v\" (L1006)", l.State.Current, l.State.Previous))
 	}
-	l.State.CookieOptionNeedsClosing = true
+	l.State.OpenOptions = slices.DeleteFunc(l.State.OpenOptions, func(d Directive) bool {
+		return optionPairs[d] == l.State.Current
+	})
 	return m
 }
 
@@ -349,31 +369,34 @@ func (l *Linter) ProcessOptionDomainCookieOnly(line string) (m []string) {
 // OCLC documentation:
 // https://help.oclc.org/Library_Management/EZproxy/Configure_resources/ProxyHostnameEdit
 func (l *Linter) ProcessProxyHostnameEdit(line string) (m []string) {
-	switch l.State.Previous {
-	case Undefined, Group, HTTPMethod,
-		OptionCookie, OptionCookiePassThrough, OptionDomainCookieOnly, OptionXForwardedFor,
-		AnonymousURL, ProxyHostnameEdit:
-		// ProxyHostnameEdit is allowed after these directives.
-	default:
-		m = append(m, fmt.Sprintf("ProxyHostnameEdit directive is out of order, previous directive: \"%v\" (L1008)", l.State.Previous))
+	allowedPreviousDirectives := []Directive{
+		Undefined,
+		Group,
+		HTTPMethod,
+		AnonymousURL,
+		ProxyHostnameEdit,
+	}
+	allowedPreviousDirectives = append(allowedPreviousDirectives, OpenerOptions()...)
+	if !slices.Contains(allowedPreviousDirectives, l.State.Previous) {
+		m = append(m, fmt.Sprintf("\"ProxyHostnameEdit\" directive is out of order, previous directive: \"%v\" (L1008)", l.State.Previous))
 	}
 	// Does the ProxyHostnameEdit line have both a find and replace?
 	findReplacePair := strings.Split(TrimDirective(line, l.State.Current), " ")
 	if len(findReplacePair) != 2 {
-		m = append(m, "ProxyHostnameEdit directive must have both a find and replace qualifier (L3001)")
+		m = append(m, "\"ProxyHostnameEdit\" directive must have both a find and replace qualifier (L3001)")
 		return m
 	}
 	if l.AdditionalPHEChecks {
 		find, found := strings.CutSuffix(findReplacePair[0], "$")
 		if !found {
-			m = append(m, "Find part of ProxyHostnameEdit directive should end with a $ (L3002)")
+			m = append(m, "Find part of \"ProxyHostnameEdit\" directive should end with a $ (L3002)")
 		}
 		if strings.ReplaceAll(find, ".", "-") != findReplacePair[1] {
-			m = append(m, "Replace part of ProxyHostnameEdit directive is malformed (L3003)")
+			m = append(m, "Replace part of \"ProxyHostnameEdit\" directive is malformed (L3003)")
 		}
 		depth := strings.Count(find, ".") + 1
 		if l.State.ProxyHostnameEditDepth != 0 && l.State.ProxyHostnameEditDepth < depth {
-			m = append(m, "ProxyHostnameEdit domains should be placed in deepest-to-shallowest order (L1009)")
+			m = append(m, "\"ProxyHostnameEdit\" domains should be placed in deepest-to-shallowest order (L1009)")
 		}
 		l.State.ProxyHostnameEditDepth = depth
 	}
@@ -385,21 +408,33 @@ func (l *Linter) ProcessProxyHostnameEdit(line string) (m []string) {
 // https://help.oclc.org/Library_Management/EZproxy/Configure_resources/AnonymousURL
 func (l *Linter) ProcessAnonymousURL(line string) (m []string) {
 	if TrimDirective(line, l.State.Current) == "-*" {
-		switch l.State.Previous {
-		case URL, Host, HostJavaScript, Domain, DomainJavaScript, Replace,
-			NeverProxy, OptionCookie, OptionNoXForwardedFor:
-			// AnonymousURL is allowed after these directives.
-		default:
-			m = append(m, fmt.Sprintf("AnonymousURL -* directive is out of order, previous directive: \"%v\" (L1003)", l.State.Previous))
+		allowedPreviousDirectives := []Directive{
+			URL,
+			Host,
+			HostJavaScript,
+			Domain,
+			DomainJavaScript,
+			Replace,
+			AnonymousURL,
+			NeverProxy,
+			ProxyHostnameEdit,
+		}
+		allowedPreviousDirectives = append(allowedPreviousDirectives, CloserOptions()...)
+		if !slices.Contains(allowedPreviousDirectives, l.State.Previous) {
+			m = append(m, fmt.Sprintf("\"AnonymousURL -*\" directive is out of order, previous directive: \"%v\" (L1003)", l.State.Previous))
 		}
 		l.State.AnonymousURLNeedsClosing = false
 	} else {
-		switch l.State.Previous {
-		case Undefined, Group, HTTPMethod,
-			OptionCookie, OptionCookiePassThrough, OptionDomainCookieOnly,
-			OptionXForwardedFor, ProxyHostnameEdit, AnonymousURL:
-		default:
-			m = append(m, fmt.Sprintf("AnonymousURL directive is out of order, previous directive: \"%v\" (L1004)", l.State.Previous))
+		allowedPreviousDirectives := []Directive{
+			Undefined,
+			Group,
+			HTTPMethod,
+			AnonymousURL,
+			ProxyHostnameEdit,
+		}
+		allowedPreviousDirectives = append(allowedPreviousDirectives, OpenerOptions()...)
+		if !slices.Contains(allowedPreviousDirectives, l.State.Previous) {
+			m = append(m, fmt.Sprintf("\"AnonymousURL\" directive is out of order, previous directive: \"%v\" (L1004)", l.State.Previous))
 		}
 		l.State.AnonymousURLNeedsClosing = true
 	}
@@ -410,29 +445,33 @@ func (l *Linter) ProcessAnonymousURL(line string) (m []string) {
 // OCLC documentation:
 // https://help.oclc.org/Library_Management/EZproxy/Configure_resources/Title
 func (l *Linter) ProcessTitle(line, at string) (m []string) {
-	switch l.State.Previous {
-	case Undefined, Group, HTTPMethod,
-		OptionCookiePassThrough, OptionDomainCookieOnly, OptionXForwardedFor, Cookie,
-		ProxyHostnameEdit, Referer, AddUserHeader, OptionEbraryUnencodedTokens:
-		// Title is allowed after these directives.
-	case OptionCookie:
-		if !l.State.CookieOptionNeedsClosing {
-			m = append(m, fmt.Sprintf("Title directive is out of order, previous directive: \"%v\" (L1001)", l.State.Previous))
-		}
-	case AnonymousURL:
-		if !l.State.AnonymousURLNeedsClosing {
-			m = append(m, fmt.Sprintf("Title directive is out of order, previous directive: \"%v\" (L1001)", l.State.Previous))
-		}
-	default:
-		m = append(m, fmt.Sprintf("Title directive is out of order, previous directive: \"%v\" (L1001)", l.State.Previous))
+	allowedPreviousDirectives := []Directive{
+		Undefined,
+		Group,
+		HTTPMethod,
+		AnonymousURL,
+		ProxyHostnameEdit,
+		Referer,
+		Cookie,
+		AddUserHeader,
+		OptionEbraryUnencodedTokens,
 	}
+	allowedPreviousDirectives = append(allowedPreviousDirectives, OpenerOptions()...)
+	if !slices.Contains(allowedPreviousDirectives, l.State.Previous) {
+		m = append(m, fmt.Sprintf("\"Title\" directive is out of order, previous directive: \"%v\" (L1001)", l.State.Previous))
+	}
+	// If the previous AnonymousURL directive was `AnonymousURL -*`, that's a problem.
+	if l.State.Previous == AnonymousURL && !l.State.AnonymousURLNeedsClosing {
+		m = append(m, fmt.Sprintf("\"Title\" directive is out of order, previous directive: \"%v\" (L1001)", l.State.Previous))
+	}
+
 	if l.State.Title != "" {
-		m = append(m, "Duplicate Title directive in stanza (L2001)")
+		m = append(m, "Duplicate \"Title\" directive in stanza (L2001)")
 	}
 	l.State.Title = TrimDirective(line, l.State.Current)
 	titleSeenAt, titleSeen := l.PreviousTitles[l.State.Title]
 	if titleSeen {
-		m = append(m, fmt.Sprintf("Title value already seen at \"%v\" (L2004)", titleSeenAt))
+		m = append(m, fmt.Sprintf("\"Title\" directive value already seen at \"%v\" (L2004)", titleSeenAt))
 	} else {
 		l.PreviousTitles[l.State.Title] = at
 	}
@@ -496,22 +535,29 @@ func (l *Linter) ProcessDomainAndDomainJavaScript(line string) (m []string) {
 // https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_2
 // https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_3
 func (l *Linter) ProcessURL(line string) (m []string) {
-	switch l.State.Previous {
-	case Title, HTTPHeader, MimeFilter, AllowVars, EncryptVar, EBLSecret, EbrarySite:
-		// URL is allowed after these directives.
-	default:
-		m = append(m, fmt.Sprintf("URL directive is out of order, previous directive: \"%v\" (L1002)", l.State.Previous))
+	allowedPreviousDirectives := []Directive{
+		AllowVars,
+		EBLSecret,
+		EbrarySite,
+		EncryptVar,
+		HTTPHeader,
+		MimeFilter,
+		Title,
 	}
+	if !slices.Contains(allowedPreviousDirectives, l.State.Previous) {
+		m = append(m, fmt.Sprintf("\"URL\" directive is out of order, previous directive: \"%v\" (L1002)", l.State.Previous))
+	}
+
 	if l.State.Title == "" {
-		m = append(m, "URL directive is before Title directive (L1010)")
+		m = append(m, "\"URL\" directive is before \"Title\" directive (L1010)")
 	}
 	if l.State.URL != "" {
-		m = append(m, "Duplicate URL directive in stanza (L2003)")
+		m = append(m, "Duplicate \"URL\" directive in stanza (L2003)")
 	}
 
 	urlFromLine := FindURLFromLine(line)
 	if urlFromLine == "" {
-		m = append(m, "URL directive is not in the right format. (L3009)")
+		m = append(m, "\"URL\" directive is not in the right format. (L3009)")
 	}
 	l.State.URL = urlFromLine
 	parsedURL, err := url.Parse(l.State.URL)
