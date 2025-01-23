@@ -36,6 +36,8 @@ archives:
       - goos: windows
         format: zip
     wrap_in_directory: true
+    files:
+      - "*.md"
 
 changelog:
   sort: asc
