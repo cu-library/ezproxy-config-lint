@@ -155,7 +155,7 @@ func (l *Linter) ProcessFile(filePath string) (warningCount int, err error) {
 		if l.FollowIncludeFile && l.State.Previous == IncludeFile {
 			splitLine := strings.Split(line, " ")
 			if len(splitLine) < 2 {
-				return warningCount, fmt.Errorf("unable to find IncludeFile path on line \"%v\"", line)
+				return warningCount, fmt.Errorf("unable to find IncludeFile path on line %q", line)
 			}
 			includeFilePath := splitLine[1]
 			help := ""
@@ -165,19 +165,19 @@ func (l *Linter) ProcessFile(filePath string) (warningCount int, err error) {
 			if !filepath.IsAbs(includeFilePath) {
 				if l.IncludeFileDirectory != "" {
 					includeFilePath = filepath.Join(l.IncludeFileDirectory, includeFilePath)
-					help = fmt.Sprintf("The \"-includefile-directory\" option was used, joined \"%v\" with \"%v\"", l.IncludeFileDirectory, includeFilePath)
+					help = fmt.Sprintf("The \"-includefile-directory\" option was used, joined %q with %q", l.IncludeFileDirectory, includeFilePath)
 				} else {
 					filePathDir := filepath.Dir(filePath)
 					includeFilePath = filepath.Join(filePathDir, includeFilePath)
-					help += fmt.Sprintf("This IncludeFile directive is in a config file at this path: \"%v\"\n", filePath)
-					help += fmt.Sprintf("            The IncludeFile directive resolves to this path: \"%v\"", includeFilePath)
+					help += fmt.Sprintf("This IncludeFile directive is in a config file at this path: %q\n", filePath)
+					help += fmt.Sprintf("            The IncludeFile directive resolves to this path: %q", includeFilePath)
 				}
 			}
 
 			includeFileWarningCount, err := l.ProcessFile(includeFilePath)
 			if err != nil {
 				// Help people debug errors with IncludeFile parent directories.
-				log.Printf("Error encountered when processing line \"%v\".\n", line)
+				log.Printf("Error encountered when processing line %q.\n", line)
 				log.Println(help)
 				if l.IncludeFileDirectory == "" {
 					log.Println("You might want to try the \"-includefile-directory\" option.")
@@ -221,16 +221,16 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 	// Is the line empty, or an empty comment?
 	if line == "" || line == "#" {
 		if l.State.Title != "" && l.State.URL == "" {
-			m = append(m, fmt.Sprintf("Stanza \"%v\" has Title but no URL (L4003)", l.State.Title))
+			m = append(m, fmt.Sprintf("Stanza %q has Title but no URL (L4003)", l.State.Title))
 		}
 		if l.State.AnonymousURLNeedsClosing {
-			m = append(m, fmt.Sprintf("Stanza \"%v\" has AnonymousURL but doesn't have a corresponding \"AnonymousURL -*\" "+
+			m = append(m, fmt.Sprintf("Stanza %q has AnonymousURL but doesn't have a corresponding \"AnonymousURL -*\" "+
 				"line at the end of the stanza (L4001)", l.State.Title))
 		}
 		if len(l.State.OpenOptions) != 0 {
 			for _, option := range l.State.OpenOptions {
-				m = append(m, fmt.Sprintf("Stanza \"%v\" has \"%v\" but doesn't have a "+
-					"corresponding \"%v\" line at the end of the stanza (L4002)", l.State.Title, option, optionPairs[option]))
+				m = append(m, fmt.Sprintf("Stanza %q has %q but doesn't have a "+
+					"corresponding %q line at the end of the stanza (L4002)", l.State.Title, option, optionPairs[option]))
 			}
 		}
 		// Reset the stanza state.
@@ -284,11 +284,11 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 	if !ok {
 		directive, ok = LowercaseLabelToDirective[strings.ToLower(label)]
 		if !ok {
-			m = append(m, fmt.Sprintf("Unknown directive \"%v\" (L9001)", label))
+			m = append(m, fmt.Sprintf("Unknown directive %q (L9001)", label))
 			return m
 		}
 		if l.DirectiveCase {
-			m = append(m, fmt.Sprintf("\"%v\" directive does not have the right letter casing. It should be replaced by \"%v\" (L5001)", label, directive))
+			m = append(m, fmt.Sprintf("%q directive does not have the right letter casing. It should be replaced by %q (L5001)", label, directive))
 		}
 	}
 	l.State.Current = directive
@@ -336,7 +336,7 @@ func (l *Linter) ProcessOptionOpener(line string) (m []string) {
 	}
 	allowedPreviousDirectives = append(allowedPreviousDirectives, OpenerOptions()...)
 	if !slices.Contains(allowedPreviousDirectives, l.State.Previous) {
-		m = append(m, fmt.Sprintf("\"%v\" directive is out of order, previous directive: \"%v\" (L1005)", l.State.Current, l.State.Previous))
+		m = append(m, fmt.Sprintf("%q directive is out of order, previous directive: %q (L1005)", l.State.Current, l.State.Previous))
 	}
 	l.State.OpenOptions = append(l.State.OpenOptions, l.State.Current)
 	return m
@@ -357,7 +357,7 @@ func (l *Linter) ProcessOptionCloser(line string) (m []string) {
 	}
 	allowedPreviousDirectives = append(allowedPreviousDirectives, CloserOptions()...)
 	if !slices.Contains(allowedPreviousDirectives, l.State.Previous) {
-		m = append(m, fmt.Sprintf("\"%v\" directive is out of order, previous directive: \"%v\" (L1006)", l.State.Current, l.State.Previous))
+		m = append(m, fmt.Sprintf("%q directive is out of order, previous directive: %q (L1006)", l.State.Current, l.State.Previous))
 	}
 	l.State.OpenOptions = slices.DeleteFunc(l.State.OpenOptions, func(d Directive) bool {
 		return optionPairs[d] == l.State.Current
@@ -378,7 +378,7 @@ func (l *Linter) ProcessProxyHostnameEdit(line string) (m []string) {
 	}
 	allowedPreviousDirectives = append(allowedPreviousDirectives, OpenerOptions()...)
 	if !slices.Contains(allowedPreviousDirectives, l.State.Previous) {
-		m = append(m, fmt.Sprintf("\"ProxyHostnameEdit\" directive is out of order, previous directive: \"%v\" (L1008)", l.State.Previous))
+		m = append(m, fmt.Sprintf("\"ProxyHostnameEdit\" directive is out of order, previous directive: %q (L1008)", l.State.Previous))
 	}
 	// Does the ProxyHostnameEdit line have both a find and replace?
 	findReplacePair := strings.Split(TrimDirective(line, l.State.Current), " ")
@@ -421,7 +421,7 @@ func (l *Linter) ProcessAnonymousURL(line string) (m []string) {
 		}
 		allowedPreviousDirectives = append(allowedPreviousDirectives, CloserOptions()...)
 		if !slices.Contains(allowedPreviousDirectives, l.State.Previous) {
-			m = append(m, fmt.Sprintf("\"AnonymousURL -*\" directive is out of order, previous directive: \"%v\" (L1003)", l.State.Previous))
+			m = append(m, fmt.Sprintf("\"AnonymousURL -*\" directive is out of order, previous directive: %q (L1003)", l.State.Previous))
 		}
 		l.State.AnonymousURLNeedsClosing = false
 	} else {
@@ -434,7 +434,7 @@ func (l *Linter) ProcessAnonymousURL(line string) (m []string) {
 		}
 		allowedPreviousDirectives = append(allowedPreviousDirectives, OpenerOptions()...)
 		if !slices.Contains(allowedPreviousDirectives, l.State.Previous) {
-			m = append(m, fmt.Sprintf("\"AnonymousURL\" directive is out of order, previous directive: \"%v\" (L1004)", l.State.Previous))
+			m = append(m, fmt.Sprintf("\"AnonymousURL\" directive is out of order, previous directive: %q (L1004)", l.State.Previous))
 		}
 		l.State.AnonymousURLNeedsClosing = true
 	}
@@ -458,11 +458,11 @@ func (l *Linter) ProcessTitle(line, at string) (m []string) {
 	}
 	allowedPreviousDirectives = append(allowedPreviousDirectives, OpenerOptions()...)
 	if !slices.Contains(allowedPreviousDirectives, l.State.Previous) {
-		m = append(m, fmt.Sprintf("\"Title\" directive is out of order, previous directive: \"%v\" (L1001)", l.State.Previous))
+		m = append(m, fmt.Sprintf("\"Title\" directive is out of order, previous directive: %q (L1001)", l.State.Previous))
 	}
 	// If the previous AnonymousURL directive was `AnonymousURL -*`, that's a problem.
 	if l.State.Previous == AnonymousURL && !l.State.AnonymousURLNeedsClosing {
-		m = append(m, fmt.Sprintf("\"Title\" directive is out of order, previous directive: \"%v\" (L1001)", l.State.Previous))
+		m = append(m, fmt.Sprintf("\"Title\" directive is out of order, previous directive: %q (L1001)", l.State.Previous))
 	}
 
 	if l.State.Title != "" {
@@ -471,7 +471,7 @@ func (l *Linter) ProcessTitle(line, at string) (m []string) {
 	l.State.Title = TrimDirective(line, l.State.Current)
 	titleSeenAt, titleSeen := l.PreviousTitles[l.State.Title]
 	if titleSeen {
-		m = append(m, fmt.Sprintf("\"Title\" directive value already seen at \"%v\" (L2004)", titleSeenAt))
+		m = append(m, fmt.Sprintf("\"Title\" directive value already seen at %q (L2004)", titleSeenAt))
 	} else {
 		l.PreviousTitles[l.State.Title] = at
 	}
@@ -506,7 +506,7 @@ func (l *Linter) ProcessHostAndHostJavaScript(line, at string) (m []string) {
 	origin := fmt.Sprintf("%v://%v", parsedURL.Scheme, parsedURL.Host)
 	originSeenAt, originSeen := l.PreviousOrigins[origin]
 	if originSeen {
-		m = append(m, fmt.Sprintf("Origin already seen at \"%v\" (L2002)", originSeenAt))
+		m = append(m, fmt.Sprintf("Origin already seen at %q (L2002)", originSeenAt))
 	} else {
 		l.PreviousOrigins[origin] = at
 	}
@@ -545,7 +545,7 @@ func (l *Linter) ProcessURL(line string) (m []string) {
 		Title,
 	}
 	if !slices.Contains(allowedPreviousDirectives, l.State.Previous) {
-		m = append(m, fmt.Sprintf("\"URL\" directive is out of order, previous directive: \"%v\" (L1002)", l.State.Previous))
+		m = append(m, fmt.Sprintf("\"URL\" directive is out of order, previous directive: %q (L1002)", l.State.Previous))
 	}
 
 	if l.State.Title == "" {

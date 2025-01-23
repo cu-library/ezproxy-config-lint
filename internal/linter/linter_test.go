@@ -273,5 +273,4 @@ func TestUnclosedOptionDirectives(t *testing.T) {
 			t.Fatalf("incorrect messages %v instead of %v", messages, tt.expected)
 		}
 	}
-
 }
