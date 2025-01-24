@@ -30,6 +30,7 @@ type State struct {
 	InMultiline               bool
 	LastLineEmpty             bool
 	OCLCTitle                 string
+	Label                     string
 	Current                   Directive
 	Previous                  Directive
 	PreviousMultilineSegments string
@@ -292,6 +293,7 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 		}
 	}
 	l.State.Current = directive
+	l.State.Label = label
 
 	// Short-circuit check for Find/Replace pairs.
 	// Without this, we would need to check that the previous
@@ -381,7 +383,7 @@ func (l *Linter) ProcessProxyHostnameEdit(line string) (m []string) {
 		m = append(m, fmt.Sprintf("\"ProxyHostnameEdit\" directive is out of order, previous directive: %q (L1008)", l.State.Previous))
 	}
 	// Does the ProxyHostnameEdit line have both a find and replace?
-	findReplacePair := strings.Split(TrimDirective(line, l.State.Current), " ")
+	findReplacePair := strings.Split(TrimLabel(line, l.State.Label), " ")
 	if len(findReplacePair) != 2 {
 		m = append(m, "\"ProxyHostnameEdit\" directive must have both a find and replace qualifier (L3001)")
 		return m
@@ -407,7 +409,7 @@ func (l *Linter) ProcessProxyHostnameEdit(line string) (m []string) {
 // OCLC documentation:
 // https://help.oclc.org/Library_Management/EZproxy/Configure_resources/AnonymousURL
 func (l *Linter) ProcessAnonymousURL(line string) (m []string) {
-	if TrimDirective(line, l.State.Current) == "-*" {
+	if TrimLabel(line, l.State.Label) == "-*" {
 		allowedPreviousDirectives := []Directive{
 			URL,
 			Host,
@@ -468,7 +470,7 @@ func (l *Linter) ProcessTitle(line, at string) (m []string) {
 	if l.State.Title != "" {
 		m = append(m, "Duplicate \"Title\" directive in stanza (L2001)")
 	}
-	l.State.Title = TrimDirective(line, l.State.Current)
+	l.State.Title = TrimLabel(line, l.State.Label)
 	titleSeenAt, titleSeen := l.PreviousTitles[l.State.Title]
 	if titleSeen {
 		m = append(m, fmt.Sprintf("\"Title\" directive value already seen at %q (L2004)", titleSeenAt))
@@ -488,7 +490,7 @@ func (l *Linter) ProcessTitle(line, at string) (m []string) {
 // https://help.oclc.org/Library_Management/EZproxy/Configure_resources/Host_H
 // https://help.oclc.org/Library_Management/EZproxy/Configure_resources/HostJavaScript_HJ
 func (l *Linter) ProcessHostAndHostJavaScript(line, at string) (m []string) {
-	trimmed := TrimDirective(line, l.State.Current)
+	trimmed := TrimLabel(line, l.State.Label)
 	parsedURL, err := url.Parse(trimmed)
 	if err != nil {
 		m = append(m, fmt.Sprintf("Unable to parse URL, might be malformed: %v (L3005)", err))
@@ -518,7 +520,7 @@ func (l *Linter) ProcessHostAndHostJavaScript(line, at string) (m []string) {
 // https://help.oclc.org/Library_Management/EZproxy/Configure_resources/Domain_D
 // https://help.oclc.org/Library_Management/EZproxy/Configure_resources/DomainJavaScript_DJ
 func (l *Linter) ProcessDomainAndDomainJavaScript(line string) (m []string) {
-	parsedURL, err := url.Parse(TrimDirective(line, l.State.Current))
+	parsedURL, err := url.Parse(TrimLabel(line, l.State.Label))
 	if err != nil {
 		m = append(m, fmt.Sprintf("Unable to parse URL, might be malformed: %v (L3005)", err))
 		return
@@ -602,6 +604,11 @@ func TrailingSpaceOrTabCheck(line string) bool {
 		return true
 	}
 	return false
+}
+
+func TrimLabel(line, label string) string {
+	line = strings.TrimPrefix(line, label+" ")
+	return strings.TrimSpace(line)
 }
 
 func TrimDirective(line string, directiveToTrim Directive) string {
