@@ -25,6 +25,7 @@ const (
 	Books24x7Site
 	ByteServe
 	CASServiceURL
+	ChargeSetLatency
 	Charset
 	ClientTimeout
 	ConnectWindow
@@ -84,6 +85,7 @@ const (
 	Name
 	NeverProxy
 	OptionAcceptXForwardedFor                                       // Option AcceptX-Forwarded-For
+	OptionAllowSendGZip                                             // Option AllowSendGZip
 	OptionAllowWebSubdirectories                                    // Option AllowWebSubdirectories
 	OptionAnyDNSHostname                                            // Option AnyDNSHostname
 	OptionBlockCountryChange                                        // Option BlockCountryChange
@@ -189,6 +191,7 @@ var LabelToDirective = map[string]Directive{ //nolint:gochecknoglobals
 	"Books24x7Site":                   Books24x7Site,
 	"ByteServe":                       ByteServe,
 	"CASServiceURL":                   CASServiceURL,
+	"ChargeSetLatency":                ChargeSetLatency,
 	"Charset":                         Charset,
 	"ClientTimeout":                   ClientTimeout,
 	"ConnectWindow":                   ConnectWindow,
@@ -258,6 +261,7 @@ var LabelToDirective = map[string]Directive{ //nolint:gochecknoglobals
 	"Name":                            Name,
 	"NeverProxy":                      NeverProxy,
 	"Option AcceptX-Forwarded-For":    OptionAcceptXForwardedFor,
+	"Option AllowSendGZip":            OptionAllowSendGZip,
 	"Option AllowWebSubdirectories":   OptionAllowWebSubdirectories,
 	"Option AnyDNSHostname":           OptionAnyDNSHostname,
 	"Option BlockCountryChange":       OptionBlockCountryChange,
