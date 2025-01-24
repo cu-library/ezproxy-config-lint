@@ -78,9 +78,11 @@ func CloserOptions() []Directive {
 	return slices.Collect(maps.Values(OptionPairs()))
 }
 
-var URLV1Regex = regexp.MustCompile(`(?i)^U(RL)?\s+(\S+)$`)
-var URLV2Regex = regexp.MustCompile(`(?i)^U(RL)?\s+(-Refresh )?\s*(-Redirect )?\s*(-Append -Encoded )?\s*(\S+)\s+(\S+)$`)
-var URLV3Regex = regexp.MustCompile(`(?i)^U(RL)?\s+(-Form)=([A-Za-z]+ )\s*(-RewriteHost )?\s*(\S+)\s+(\S+)$`)
+var (
+	URLV1Regex = regexp.MustCompile(`(?i)^U(RL)?\s+(\S+)$`)
+	URLV2Regex = regexp.MustCompile(`(?i)^U(RL)?\s+(-Refresh )?\s*(-Redirect )?\s*(-Append -Encoded )?\s*(\S+)\s+(\S+)$`)
+	URLV3Regex = regexp.MustCompile(`(?i)^U(RL)?\s+(-Form)=([A-Za-z]+ )\s*(-RewriteHost )?\s*(\S+)\s+(\S+)$`)
+)
 
 func (l *Linter) ProcessFile(filePath string) (warningCount int, err error) {
 	f, err := os.Open(filePath)
@@ -238,9 +240,9 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 		l.State = State{LastLineEmpty: true}
 
 		return m
-	} else {
-		l.State.LastLineEmpty = false
 	}
+
+	l.State.LastLineEmpty = false
 
 	// Is the line a comment?
 	if strings.HasPrefix(line, "#") {
