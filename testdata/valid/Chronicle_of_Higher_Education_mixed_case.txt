@@ -1,0 +1,21 @@
+AnonymousURL +https://sh.chronicle.com/*
+AnonymousUrl +https://data.chronicle.com/*
+AnonymousURL +https://data.shorthand.com/*
+tItLe The Chronicle of Higher Education (updated 20190726)
+Url https://www.chronicle.com
+HJ chronicle.com
+HJ data.chronicle.com
+HJ data.shorthand.com
+HJ https://data.shorthand.com
+HJ projects.chronicle.com
+HJ www.chronicle.com
+Hj https://chronicle.com
+HJ https://data.chronicle.com
+HJ https://projects.chronicle.com
+HJ https://sh.chronicle.com
+DJ data.shorthand.com
+DJ www.chronicle.com
+fInD data-url="//data.shorthand.com
+replAce data-url="https://data.shorthand.com
+NeverProxy hive.chronicle.com
+AnonymousUrl -*
