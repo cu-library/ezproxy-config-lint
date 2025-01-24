@@ -80,7 +80,7 @@ func TestTrailingSpaceOrTabCheck(t *testing.T) {
 	for _, tt := range tests {
 		problem := TrailingSpaceOrTabCheck(tt.line)
 		if problem != tt.expected {
-			t.Fatalf("TrailingSpaceOrTabCheck() fails on \"%v\", wanted %v, got %v.\n", tt.line, tt.expected, problem)
+			t.Fatalf("TrailingSpaceOrTabCheck() fails on %q, wanted %v, got %v.\n", tt.line, tt.expected, problem)
 		}
 	}
 }
@@ -107,7 +107,7 @@ func TestFindReplacePair(t *testing.T) {
 	linter := Linter{State: State{
 		Previous: Find,
 	}}
-	expected := []string{"Find directive must be immediately proceeded with a Replace directive (L4004)"}
+	expected := []string{"\"Find\" directive must be immediately proceeded with a \"Replace\" directive (L4004)"}
 	messages := linter.ProcessLineAt("NeverProxy google.com", "test:1")
 	if !reflect.DeepEqual(messages, expected) {
 		t.Fatalf("incorrect messages %v instead of %v", messages, expected)
@@ -156,7 +156,121 @@ func TestFindURLFromLine(t *testing.T) {
 	for _, tt := range tests {
 		urlQualifier := FindURLFromLine(tt.line)
 		if urlQualifier != tt.expected {
-			t.Fatalf("FindURLFromLine() fails on \"%v\", wanted \"%v\", got \"%v\".\n", tt.line, tt.expected, urlQualifier)
+			t.Fatalf("FindURLFromLine() fails on %q, wanted %q, got %q.\n", tt.line, tt.expected, urlQualifier)
+		}
+	}
+}
+
+func TestUnclosedOptionDirectives(t *testing.T) {
+	var tests = []struct {
+		linter   Linter
+		expected []string
+	}{
+		{
+			Linter{
+				State: State{
+					Title:       "DomainCookieOnlyMissing",
+					URL:         "https://test.com",
+					OpenOptions: []Directive{OptionDomainCookieOnly},
+				},
+			},
+			[]string{"Stanza \"DomainCookieOnlyMissing\" has \"Option DomainCookieOnly\" but doesn't have a " +
+				"corresponding \"Option Cookie\" line at the end of the stanza (L4002)"},
+		},
+		{
+			Linter{
+				State: State{
+					Title:       "OptionNoCookie",
+					URL:         "https://test.com",
+					OpenOptions: []Directive{OptionNoCookie},
+				},
+			},
+			[]string{"Stanza \"OptionNoCookie\" has \"Option NoCookie\" but doesn't have a " +
+				"corresponding \"Option Cookie\" line at the end of the stanza (L4002)"},
+		},
+		{
+			Linter{
+				State: State{
+					Title:       "OptionCookiePassThrough",
+					URL:         "https://test.com",
+					OpenOptions: []Directive{OptionCookiePassThrough},
+				},
+			},
+			[]string{"Stanza \"OptionCookiePassThrough\" has \"Option CookiePassThrough\" but doesn't have a " +
+				"corresponding \"Option Cookie\" line at the end of the stanza (L4002)"},
+		},
+		{
+			Linter{
+				State: State{
+					Title:       "OptionHideEZproxy",
+					URL:         "https://test.com",
+					OpenOptions: []Directive{OptionHideEZproxy},
+				},
+			},
+			[]string{"Stanza \"OptionHideEZproxy\" has \"Option HideEZproxy\" but doesn't have a " +
+				"corresponding \"Option NoHideEZproxy\" line at the end of the stanza (L4002)"},
+		},
+		{
+			Linter{
+				State: State{
+					Title:       "OptionNoHttpsHyphens",
+					URL:         "https://test.com",
+					OpenOptions: []Directive{OptionNoHttpsHyphens},
+				},
+			},
+			[]string{"Stanza \"OptionNoHttpsHyphens\" has \"Option NoHttpsHyphens\" but doesn't have a " +
+				"corresponding \"Option HttpsHyphens\" line at the end of the stanza (L4002)"},
+		},
+		{
+			Linter{
+				State: State{
+					Title:       "OptionMetaEZproxyRewriting",
+					URL:         "https://test.com",
+					OpenOptions: []Directive{OptionMetaEZproxyRewriting},
+				},
+			},
+			[]string{"Stanza \"OptionMetaEZproxyRewriting\" has \"Option MetaEZproxyRewriting\" but doesn't have a " +
+				"corresponding \"Option NoMetaEZproxyRewriting\" line at the end of the stanza (L4002)"},
+		},
+		{
+			Linter{
+				State: State{
+					Title:       "OptionProxyFTP",
+					URL:         "https://test.com",
+					OpenOptions: []Directive{OptionProxyFTP},
+				},
+			},
+			[]string{"Stanza \"OptionProxyFTP\" has \"Option ProxyFTP\" but doesn't have a " +
+				"corresponding \"Option NoProxyFTP\" line at the end of the stanza (L4002)"},
+		},
+		{
+			Linter{
+				State: State{
+					Title:       "OptionUTF16",
+					URL:         "https://test.com",
+					OpenOptions: []Directive{OptionUTF16},
+				},
+			},
+			[]string{"Stanza \"OptionUTF16\" has \"Option UTF16\" but doesn't have a " +
+				"corresponding \"Option NoUTF16\" line at the end of the stanza (L4002)"},
+		},
+		{
+			Linter{
+				State: State{
+					Title:       "OptionXForwardedFor",
+					URL:         "https://test.com",
+					OpenOptions: []Directive{OptionXForwardedFor},
+				},
+			},
+			[]string{"Stanza \"OptionXForwardedFor\" has \"Option X-Forwarded-For\" but doesn't have a " +
+				"corresponding \"Option NoX-Forwarded-For\" line at the end of the stanza (L4002)"},
+		},
+	}
+
+	for _, tt := range tests {
+		messages := tt.linter.ProcessLineAt("", "test:1")
+		if !reflect.DeepEqual(messages, tt.expected) {
+			t.Fatalf("incorrect messages %v instead of %v", messages, tt.expected)
 		}
 	}
 }
