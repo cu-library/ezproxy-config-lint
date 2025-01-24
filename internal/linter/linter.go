@@ -244,7 +244,7 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 
 	// Is the line a comment?
 	if strings.HasPrefix(line, "#") {
-		if strings.HasPrefix(line, "# Source - ") && l.Source {
+		if l.Source && strings.HasPrefix(line, "# Source - ") {
 			source, oclcTitle, err := processSourceLine(line)
 			if err != nil {
 				m = append(m, fmt.Sprintf("Error processsing Source line (L9003): %v", err))
@@ -463,7 +463,7 @@ func (l *Linter) ProcessTitle(line, at string) (m []string) {
 		m = append(m, fmt.Sprintf("\"Title\" directive is out of order, previous directive: %q (L1001)", l.State.Previous))
 	}
 	// If the previous AnonymousURL directive was `AnonymousURL -*`, that's a problem.
-	if l.State.Previous == AnonymousURL && !l.State.AnonymousURLNeedsClosing {
+	if !l.State.AnonymousURLNeedsClosing && l.State.Previous == AnonymousURL {
 		m = append(m, fmt.Sprintf("\"Title\" directive is out of order, previous directive: %q (L1001)", l.State.Previous))
 	}
 
