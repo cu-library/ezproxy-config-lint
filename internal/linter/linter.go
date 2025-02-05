@@ -424,9 +424,8 @@ func (l *Linter) ProcessAnonymousURL(line string) (m []string) {
 			Domain,
 			DomainJavaScript,
 			Replace,
-			AnonymousURL,
+			AddUserHeader,
 			NeverProxy,
-			ProxyHostnameEdit,
 		}
 		allowedPreviousDirectives = append(allowedPreviousDirectives, CloserOptions()...)
 		if !slices.Contains(allowedPreviousDirectives, l.State.Previous) {
