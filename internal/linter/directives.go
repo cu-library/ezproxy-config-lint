@@ -364,3 +364,7 @@ func init() {
 		LowercaseLabelToDirective[strings.ToLower(label)] = directive
 	}
 }
+
+func (d Directive) MarshalText() ([]byte, error) {
+	return []byte(d.String()), nil
+}

@@ -6,6 +6,7 @@ package linter
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -30,9 +31,9 @@ type State struct {
 	InMultiline               bool
 	LastLineEmpty             bool
 	OCLCTitle                 string
-	Label                     string
-	Current                   Directive
-	Previous                  Directive
+	Label                     string    `json:"PreviousLabel"`
+	Current                   Directive `json:"-"`
+	Previous                  Directive `json:"PreviousDirective"`
 	PreviousMultilineSegments string
 	Source                    string
 	Title                     string
@@ -131,7 +132,11 @@ func (l *Linter) ProcessFile(filePath string) (warningCount int, err error) {
 		// If verbose mode is enabled, print the internal state
 		// of the linter before each line.
 		if l.Verbose {
-			fmt.Fprintf(l.Output, "%+v\n", l.State)
+			s, err := json.Marshal(l.State)
+			if err != nil {
+				return warningCount, err
+			}
+			fmt.Fprintf(l.Output, "%v\n", color.CyanString(string(s)))
 		}
 
 		at := fmt.Sprintf("%v:%v", filePath, lineNum)
