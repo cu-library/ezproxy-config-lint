@@ -485,8 +485,8 @@ func (l *Linter) ProcessAnonymousURL(line string) (m []string) {
 			Undefined,
 			Group,
 			HTTPMethod,
-			AnonymousURL,
 			AddUserHeader,
+			AnonymousURL,
 			ProxyHostnameEdit,
 		}
 		allowedPreviousDirectives = append(allowedPreviousDirectives, OpenerOptions()...)
