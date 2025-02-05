@@ -13,6 +13,8 @@ Explanations of all checks in `ezproxy-config-lint`.
     - [L1008 - `ProxyHostnameEdit` directive is out of order](#l1008---proxyhostnameedit-directive-is-out-of-order)
     - [L1009 - `ProxyHostnameEdit` domains should be placed in deepest-to-shallowest order](#l1009---proxyhostnameedit-domains-should-be-placed-in-deepest-to-shallowest-order)
     - [L1010 - `URL` directive is before `Title` directive](#l1010---url-directive-is-before-title-directive)
+    - [L1011 - `AddUserHeader` directive is out of order](#l1011---adduserheader-directive-is-out-of-order)
+    - [L1012 - `AddUserHeader` directive is out of order](#l1012---adduserheader-directive-is-out-of-order)
   - [L2 - Duplication Issues](#l2---duplication-issues)
     - [L2001 - Duplicate `Title` directive in stanza](#l2001---duplicate-title-directive-in-stanza)
     - [L2002 - Origin already seen](#l2002---origin-already-seen)
@@ -33,6 +35,7 @@ Explanations of all checks in `ezproxy-config-lint`.
     - [L4002 - Missing Option at end of stanza](#l4002---missing-option-at-end-of-stanza)
     - [L4003 - Stanza has `Title` but no `URL`](#l4003---stanza-has-title-but-no-url)
     - [L4004 - `Find` directive must be immediately proceeded with a `Replace` directive](#l4004---find-directive-must-be-immediately-proceeded-with-a-replace-directive)
+    - [L4005 - Missing `AddUserHeader` at end of stanza](#l4005---missing-adduserheader-at-end-of-stanza)
   - [L5 - Styling Issues](#l5---styling-issues)
     - [L5001 - Directive uses the wrong case.](#l5001---directive-uses-the-wrong-case)
     - [L5002 - Line ends in a space or tab character.](#l5002---line-ends-in-a-space-or-tab-character)
@@ -51,11 +54,11 @@ The `Title` directive are only allowed to follow these directives:
 
 * `Group`
 * `HTTPMethod`
+* `AddUserHeader`
 * `AnonymousURL`
 * `ProxyHostnameEdit`
 * `Referer`
 * `Cookie`
-* `AddUserHeader`
 * `OptionEbraryUnencodedTokens`
 * `Option DomainCookieOnly`
 * `Option NoCookie`
@@ -107,11 +110,12 @@ The `AnonymousURL -*` directive is only allowed to follow these directives:
 
 ### L1004 - `AnonymousURL` directive is out of order
 
-Except for the ending `AnonymousURL -*` usage (see [L1003](#l1003])),
+Except for the ending `AnonymousURL -*` usage (see [L1003](#l1003---anonymousurl---directive-is-out-of-order)),
 the `AnonymousURL` directive is only allowed to follow these directives:
 
 * `Group`
 * `HTTPMethod`
+* `AddUserHeader`
 * `AnonymousURL`
 * `ProxyHostnameEdit`
 * `Option DomainCookieOnly`
@@ -142,9 +146,10 @@ directives are only allowed to follow other 'opener' directives and:
 
 * `Group`
 * `HTTPMethod`
+* `AddUserHeader`
 * `AnonymousURL`
 
-'Opener' directives are Option directives which have a corresponding 'closer' Option directive. See [L4002](#l4002]) for more information.
+'Opener' directives are Option directives which have a corresponding 'closer' Option directive. See [L4002](#l1004---anonymousurl-directive-is-out-of-order) for more information.
 
 ---------
 
@@ -166,10 +171,11 @@ directives are only allowed to follow other 'closer' directives and:
 * `Domain`
 * `DomainJavaScript`
 * `Replace`
+* `AddUserHeader`
 * `AnonymousURL`
 * `NeverProxy`
 
-'Closer' directives are Option directives which have a corresponding 'opener' Option directive. See [L4002](#l4002]) for more information.
+'Closer' directives are Option directives which have a corresponding 'opener' Option directive. See [L4002](#l1004---anonymousurl-directive-is-out-of-order)) for more information.
 
 ---------
 
@@ -179,6 +185,7 @@ The `ProxyHostnameEdit` directive is only allowed to follow the following direct
 
 * `Group`
 * `HTTPMethod`
+* `AddUserHeader`
 * `AnonymousURL`
 * `ProxyHostnameEdit`
 * `Option DomainCookieOnly`
@@ -218,6 +225,51 @@ but a.short.domain.ca is four components deep.
 ### L1010 - `URL` directive is before `Title` directive
 
 The `URL` directive should always come after the `Title` is a given stanza.
+
+---------
+
+### L1011 - `AddUserHeader` directive is out of order
+
+The `AddUserHeader` directive with no qualifiers is only allowed to follow these directives:
+
+* `URL`
+* `Host`
+* `HostJavaScript`
+* `Domain`
+* `DomainJavaScript`
+* `Replace`
+* `AnonymousURL`
+* `NeverProxy`
+* `ProxyHostnameEdit`
+* `Option Cookie`
+* `Option NoHideEZproxy`
+* `Option HttpsHyphens`
+* `Option NoMetaEZproxyRewriting`
+* `Option NoProxyFTP`
+* `Option NoUTF16`
+* `Option NoXForwardedFor`
+
+---------
+
+### L1012 - `AddUserHeader` directive is out of order
+
+Except for the ending `AddUserHeader` usage (see [L1011](#l1011---adduserheader-directive-is-out-of-order)),
+the `AddUserHeader` directive is only allowed to follow these directives:
+
+* `Group`
+* `HTTPMethod`
+* `AddUserHeader`
+* `AnonymousURL`
+* `ProxyHostnameEdit`
+* `Option DomainCookieOnly`
+* `Option NoCookie`
+* `Option CookiePassThrough`
+* `Option HideEZproxy`
+* `Option NoHttpsHyphens`
+* `Option MetaEZproxyRewriting`
+* `Option ProxyFTP`
+* `Option UTF16`
+* `Option X-Forwarded-For`
 
 ## L2 - Duplication Issues
 
@@ -348,6 +400,16 @@ Stanzas should have both a Title and a URL directive.
 From the [OCLC documentation](https://help.oclc.org/Library_Management/EZproxy/Configure_resources/Find_Replace):
 
 "These directives always appear paired together, with Find appearing directly before its corresponding Replace."
+
+---------
+
+### L4005 - Missing `AddUserHeader` at end of stanza
+
+From the [OCLC documentation](https://help.oclc.org/Library_Management/EZproxy/Configure_resources/AddUserHeader):
+
+"Omit both -base64 and headername to direct EZproxy to exclude this header for the databases that follow."
+
+Stanzas which use a AddUserHeader directive should include a `AddUserHeader` directive with no other qualifiers at the end of the stanza so that other stanzas in the config file are not impacted.
 
 ## L5 - Styling Issues
 
