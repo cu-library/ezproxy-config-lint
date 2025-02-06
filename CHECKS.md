@@ -13,7 +13,7 @@ Explanations of all checks in `ezproxy-config-lint`.
     - [L1008 - `ProxyHostnameEdit` directive is out of order](#l1008---proxyhostnameedit-directive-is-out-of-order)
     - [L1009 - `ProxyHostnameEdit` domains should be placed in deepest-to-shallowest order](#l1009---proxyhostnameedit-domains-should-be-placed-in-deepest-to-shallowest-order)
     - [L1010 - `URL` directive is before `Title` directive](#l1010---url-directive-is-before-title-directive)
-    - [L1011 - `AddUserHeader` directive is out of order](#l1011---adduserheader-directive-is-out-of-order)
+    - [L1011 - `AddUserHeader` directive with no qualifiers is out of order](#l1011---adduserheader-directive-with-no-qualifiers-is-out-of-order)
     - [L1012 - `AddUserHeader` directive is out of order](#l1012---adduserheader-directive-is-out-of-order)
   - [L2 - Duplication Issues](#l2---duplication-issues)
     - [L2001 - Duplicate `Title` directive in stanza](#l2001---duplicate-title-directive-in-stanza)
@@ -228,7 +228,7 @@ The `URL` directive should always come after the `Title` is a given stanza.
 
 ---------
 
-### L1011 - `AddUserHeader` directive is out of order
+### L1011 - `AddUserHeader` directive with no qualifiers is out of order
 
 The `AddUserHeader` directive with no qualifiers is only allowed to follow these directives:
 

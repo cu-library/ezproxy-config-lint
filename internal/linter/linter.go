@@ -439,7 +439,7 @@ func (l *Linter) ProcessAddUserHeader(line string) (m []string) {
 		}
 		allowedPreviousDirectives = append(allowedPreviousDirectives, CloserOptions()...)
 		if !slices.Contains(allowedPreviousDirectives, l.State.Previous) {
-			m = append(m, fmt.Sprintf("\"AddUserHeader\" directive is out of order, previous directive: %q (L1011)", l.State.Previous))
+			m = append(m, fmt.Sprintf("\"AddUserHeader\" directive with no qualifiers is out of order, previous directive: %q (L1011)", l.State.Previous))
 		}
 		l.State.AddUserHeaderNeedsClosing = false
 	} else {
