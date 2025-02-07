@@ -665,8 +665,7 @@ func TrailingSpaceOrTabCheck(line string) bool {
 }
 
 func TrimLabel(line, label string) string {
-	line = strings.TrimPrefix(line, label+" ")
-	return strings.TrimSpace(line)
+	return strings.TrimSpace(strings.TrimPrefix(line, label))
 }
 
 func TrimDirective(line string, directiveToTrim Directive) string {

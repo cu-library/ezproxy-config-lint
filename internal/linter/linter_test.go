@@ -274,3 +274,24 @@ func TestUnclosedOptionDirectives(t *testing.T) {
 		}
 	}
 }
+
+func TestTrimLabel(t *testing.T) {
+	var tests = []struct {
+		line     string
+		label    string
+		expected string
+	}{
+		{"AddUserHeader", "AddUserHeader", ""},
+		{"DJ aviationweek.com", "DJ", "aviationweek.com"},
+		{"HTTPHeader -request -process token", "HTTPHeader", "-request -process token"},
+		{"AnonymousURL -*", "AnonymousURL", "-*"},
+		{"Find name=\"landingPage\" value=\"http://", "Find", "name=\"landingPage\" value=\"http://"},
+	}
+
+	for _, tt := range tests {
+		result := TrimLabel(tt.line, tt.label)
+		if result != tt.expected {
+			t.Fatalf("TrimLabel() fails on %q, wanted %q, got %q.\n", tt.line, tt.expected, result)
+		}
+	}
+}
