@@ -115,6 +115,7 @@ the `AnonymousURL` directive is only allowed to follow these directives:
 
 * `Group`
 * `HTTPMethod`
+* `Cookie`
 * `AddUserHeader`
 * `AnonymousURL`
 * `ProxyHostnameEdit`
@@ -185,6 +186,7 @@ The `ProxyHostnameEdit` directive is only allowed to follow the following direct
 
 * `Group`
 * `HTTPMethod`
+* `Cookie`
 * `AddUserHeader`
 * `AnonymousURL`
 * `ProxyHostnameEdit`
@@ -258,6 +260,7 @@ the `AddUserHeader` directive is only allowed to follow these directives:
 
 * `Group`
 * `HTTPMethod`
+* `Cookie`
 * `AddUserHeader`
 * `AnonymousURL`
 * `ProxyHostnameEdit`
