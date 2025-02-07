@@ -15,7 +15,7 @@ func TestLineEndingInSpace(t *testing.T) {
 	expected := []string{"Line ends in a space or tab character (L5002)"}
 	messages := linter.ProcessLineAt("Title hello     ", "test:1")
 	if !reflect.DeepEqual(messages, expected) {
-		t.Fatalf("incorrect messages %v instead of %v", messages, expected)
+		t.Fatalf("incorrect messages %q instead of %q", messages, expected)
 	}
 }
 
@@ -26,7 +26,7 @@ func TestMissingURL(t *testing.T) {
 	expected := []string{"Stanza \"A Title\" has Title but no URL (L4003)"}
 	messages := linter.ProcessLineAt("", "test:1")
 	if !reflect.DeepEqual(messages, expected) {
-		t.Fatalf("incorrect messages %v instead of %v", messages, expected)
+		t.Fatalf("incorrect messages %q instead of %q", messages, expected)
 	}
 }
 
@@ -38,7 +38,7 @@ func TestMalformedURL(t *testing.T) {
 	expected := []string{"Unable to parse URL, might be malformed: parse \"http://[boo\": missing ']' in host (L3005)"}
 	messages := linter.ProcessLineAt("URL http://[boo", "test:1")
 	if !reflect.DeepEqual(messages, expected) {
-		t.Fatalf("incorrect messages %v instead of %v", messages, expected)
+		t.Fatalf("incorrect messages %q instead of %q", messages, expected)
 	}
 }
 
@@ -50,7 +50,7 @@ func TestURLWithoutScheme(t *testing.T) {
 	expected := []string{"URL does not start with http or https (L3006)"}
 	messages := linter.ProcessLineAt("URL google.com", "test:1")
 	if !reflect.DeepEqual(messages, expected) {
-		t.Fatalf("incorrect messages %v instead of %v", messages, expected)
+		t.Fatalf("incorrect messages %q instead of %q", messages, expected)
 	}
 }
 
@@ -59,7 +59,7 @@ func TestMalformedHost(t *testing.T) {
 	expected := []string{"Unable to parse URL, might be malformed: parse \"http://[]w]w[ef\": invalid port \"w[ef\" after host (L3005)"}
 	messages := linter.ProcessLineAt("HJ []w]w[ef", "test:1")
 	if !reflect.DeepEqual(messages, expected) {
-		t.Fatalf("incorrect messages %v instead of %v", messages, expected)
+		t.Fatalf("incorrect messages %q instead of %q", messages, expected)
 	}
 }
 
@@ -78,9 +78,9 @@ func TestTrailingSpaceOrTabCheck(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		problem := TrailingSpaceOrTabCheck(tt.line)
-		if problem != tt.expected {
-			t.Fatalf("TrailingSpaceOrTabCheck() fails on %q, wanted %v, got %v.\n", tt.line, tt.expected, problem)
+		result := TrailingSpaceOrTabCheck(tt.line)
+		if result != tt.expected {
+			t.Fatalf("TrailingSpaceOrTabCheck() fails on %q, wanted %v, got %v.\n", tt.line, tt.expected, result)
 		}
 	}
 }
@@ -95,7 +95,7 @@ func TestMultilineDirective(t *testing.T) {
 	for _, line := range strings.Split(multiline, "\n") {
 		messages := linter.ProcessLineAt(line, "test:1")
 		if len(messages) != 0 {
-			t.Fatalf("Multiline directive was not properly processed: %v", messages)
+			t.Fatalf("Multiline directive was not properly processed: %q", messages)
 		}
 	}
 	if linter.State.Previous != ShibbolethMetadata {
@@ -110,7 +110,7 @@ func TestFindReplacePair(t *testing.T) {
 	expected := []string{"\"Find\" directive must be immediately proceeded with a \"Replace\" directive (L4004)"}
 	messages := linter.ProcessLineAt("NeverProxy google.com", "test:1")
 	if !reflect.DeepEqual(messages, expected) {
-		t.Fatalf("incorrect messages %v instead of %v", messages, expected)
+		t.Fatalf("incorrect messages %q instead of %q", messages, expected)
 	}
 }
 
@@ -119,7 +119,7 @@ func TestMisstyledDirective(t *testing.T) {
 	expected := []string{"\"TITLE\" directive does not have the right letter casing. It should be replaced by \"Title\" (L5001)"}
 	messages := linter.ProcessLineAt("TITLE Foo", "test:1")
 	if !reflect.DeepEqual(messages, expected) {
-		t.Fatalf("incorrect messages %v instead of %v", messages, expected)
+		t.Fatalf("incorrect messages %q instead of %q", messages, expected)
 	}
 }
 
@@ -128,7 +128,7 @@ func TestUnknownDirective(t *testing.T) {
 	expected := []string{"Unknown directive \"FooBar\" (L9001)"}
 	messages := linter.ProcessLineAt("FooBar Baz", "test:1")
 	if !reflect.DeepEqual(messages, expected) {
-		t.Fatalf("incorrect messages %v instead of %v", messages, expected)
+		t.Fatalf("incorrect messages %q instead of %q", messages, expected)
 	}
 }
 
@@ -270,7 +270,7 @@ func TestUnclosedOptionDirectives(t *testing.T) {
 	for _, tt := range tests {
 		messages := tt.linter.ProcessLineAt("", "test:1")
 		if !reflect.DeepEqual(messages, tt.expected) {
-			t.Fatalf("incorrect messages %v instead of %v", messages, tt.expected)
+			t.Fatalf("incorrect messages %q instead of %q", messages, tt.expected)
 		}
 	}
 }
