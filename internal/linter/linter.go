@@ -26,6 +26,7 @@ import (
 )
 
 type State struct {
+	AddUserHeaderNeedsClosing bool
 	AnonymousURLNeedsClosing  bool
 	OpenOptions               []Directive
 	InMultiline               bool
@@ -231,6 +232,10 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 		if l.State.Title != "" && l.State.URL == "" {
 			m = append(m, fmt.Sprintf("Stanza %q has Title but no URL (L4003)", l.State.Title))
 		}
+		if l.State.AddUserHeaderNeedsClosing {
+			m = append(m, fmt.Sprintf("Stanza %q uses AddUserHeader but doesn't have a corresponding \"AddUserHeader\" "+
+				"line at the end of the stanza (L4005)", l.State.Title))
+		}
 		if l.State.AnonymousURLNeedsClosing {
 			m = append(m, fmt.Sprintf("Stanza %q has AnonymousURL but doesn't have a corresponding \"AnonymousURL -*\" "+
 				"line at the end of the stanza (L4001)", l.State.Title))
@@ -320,6 +325,8 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 	switch directive {
 	case ProxyHostnameEdit:
 		m = append(m, l.ProcessProxyHostnameEdit(line)...)
+	case AddUserHeader:
+		m = append(m, l.ProcessAddUserHeader(line)...)
 	case AnonymousURL:
 		m = append(m, l.ProcessAnonymousURL(line)...)
 	case Title:
@@ -341,6 +348,7 @@ func (l *Linter) ProcessOptionOpener(line string) (m []string) {
 		Undefined,
 		Group,
 		HTTPMethod,
+		AddUserHeader,
 		AnonymousURL,
 	}
 	allowedPreviousDirectives = append(allowedPreviousDirectives, OpenerOptions()...)
@@ -361,6 +369,7 @@ func (l *Linter) ProcessOptionCloser(line string) (m []string) {
 		Domain,
 		DomainJavaScript,
 		Replace,
+		AddUserHeader,
 		AnonymousURL,
 		NeverProxy,
 	}
@@ -382,6 +391,7 @@ func (l *Linter) ProcessProxyHostnameEdit(line string) (m []string) {
 		Undefined,
 		Group,
 		HTTPMethod,
+		AddUserHeader,
 		AnonymousURL,
 		ProxyHostnameEdit,
 	}
@@ -412,6 +422,44 @@ func (l *Linter) ProcessProxyHostnameEdit(line string) (m []string) {
 	return m
 }
 
+// ProcessAddUserHeader processes the line containing the AddUserHeader directive.
+// OCLC documentation:
+// https://help.oclc.org/Library_Management/EZproxy/Configure_resources/AddUserHeader
+func (l *Linter) ProcessAddUserHeader(line string) (m []string) {
+	if TrimLabel(line, l.State.Label) == "" {
+		allowedPreviousDirectives := []Directive{
+			URL,
+			Host,
+			HostJavaScript,
+			Domain,
+			DomainJavaScript,
+			Replace,
+			AnonymousURL,
+			NeverProxy,
+		}
+		allowedPreviousDirectives = append(allowedPreviousDirectives, CloserOptions()...)
+		if !slices.Contains(allowedPreviousDirectives, l.State.Previous) {
+			m = append(m, fmt.Sprintf("\"AddUserHeader\" directive with no qualifiers is out of order, previous directive: %q (L1011)", l.State.Previous))
+		}
+		l.State.AddUserHeaderNeedsClosing = false
+	} else {
+		allowedPreviousDirectives := []Directive{
+			Undefined,
+			Group,
+			HTTPMethod,
+			AddUserHeader,
+			AnonymousURL,
+			ProxyHostnameEdit,
+		}
+		allowedPreviousDirectives = append(allowedPreviousDirectives, OpenerOptions()...)
+		if !slices.Contains(allowedPreviousDirectives, l.State.Previous) {
+			m = append(m, fmt.Sprintf("\"AddUserHeader\" directive is out of order, previous directive: %q (L1012)", l.State.Previous))
+		}
+		l.State.AddUserHeaderNeedsClosing = true
+	}
+	return m
+}
+
 // ProcessAnonymousURL processes the line containing the AnonymousURL directive.
 // OCLC documentation:
 // https://help.oclc.org/Library_Management/EZproxy/Configure_resources/AnonymousURL
@@ -437,6 +485,7 @@ func (l *Linter) ProcessAnonymousURL(line string) (m []string) {
 			Undefined,
 			Group,
 			HTTPMethod,
+			AddUserHeader,
 			AnonymousURL,
 			ProxyHostnameEdit,
 		}
@@ -457,11 +506,11 @@ func (l *Linter) ProcessTitle(line, at string) (m []string) {
 		Undefined,
 		Group,
 		HTTPMethod,
+		AddUserHeader,
 		AnonymousURL,
 		ProxyHostnameEdit,
 		Referer,
 		Cookie,
-		AddUserHeader,
 		OptionEbraryUnencodedTokens,
 	}
 	allowedPreviousDirectives = append(allowedPreviousDirectives, OpenerOptions()...)
