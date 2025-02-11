@@ -52,6 +52,7 @@ type Linter struct {
 	Whitespace           bool
 	FollowIncludeFile    bool
 	IncludeFileDirectory string
+	ConfigDir            string // directory containing root config.txt file
 	State                State
 	Output               io.Writer
 	PreviousTitles       map[string]string
@@ -92,6 +93,11 @@ func (l *Linter) ProcessFile(filePath string) (warningCount int, err error) {
 		return warningCount, err
 	}
 	defer f.Close()
+
+	// Save directory containing root config.txt file
+	if l.ConfigDir == "" {
+		l.ConfigDir = filepath.Dir(filePath)
+	}
 
 	// Make a buffer of about 1 MB in size.
 	buf := make([]byte, 1048576)
@@ -176,8 +182,7 @@ func (l *Linter) ProcessFile(filePath string) (warningCount int, err error) {
 					includeFilePath = filepath.Join(l.IncludeFileDirectory, includeFilePath)
 					help = fmt.Sprintf("The \"-includefile-directory\" option was used, joined %q with %q", l.IncludeFileDirectory, includeFilePath)
 				} else {
-					filePathDir := filepath.Dir(filePath)
-					includeFilePath = filepath.Join(filePathDir, includeFilePath)
+					includeFilePath = filepath.Join(l.ConfigDir, includeFilePath)
 					help += fmt.Sprintf("This IncludeFile directive is in a config file at this path: %q\n", filePath)
 					help += fmt.Sprintf("            The IncludeFile directive resolves to this path: %q", includeFilePath)
 				}
