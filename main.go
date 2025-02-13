@@ -34,11 +34,13 @@ func main() {
 	whitespace := flag.Bool("whitespace", false, "Report on trailing space or tab characters.")
 	followIncludeFile := flag.Bool("follow-includefile", true, "Also process files referenced by IncludeFile directives.")
 	includeFileDirectory := flag.String("includefile-directory", "", "The directory from which the IncludeFile paths will be resolved. "+
-		"By default, IncludeFile paths are resolved from the config file's directory, unless they are absolute paths.")
+		"By default, IncludeFile paths are resolved from the parent directory of each of the file arguments, unless they are absolute paths.")
 	flag.Usage = func() {
 		fmt.Fprint(flag.CommandLine.Output(), "ezproxy-config-lint: Lint config files for EZproxy\n")
-		fmt.Fprintf(flag.CommandLine.Output(), "Version %v\n", version)
-		fmt.Fprintf(flag.CommandLine.Output(), "Compiled with %v\n", runtime.Version())
+		fmt.Fprintf(flag.CommandLine.Output(), "  Version %v\n", version)
+		fmt.Fprintf(flag.CommandLine.Output(), "  Compiled with %v\n", runtime.Version())
+		fmt.Fprint(flag.CommandLine.Output(), "Usage:\n  ezproxy-config-lint [options] <file>...\n")
+		fmt.Fprint(flag.CommandLine.Output(), "Options:\n")
 		flag.PrintDefaults()
 	}
 
@@ -71,6 +73,19 @@ func main() {
 			os.Exit(Error)
 		}
 		warningCount += fileWarningCount
+		// ProcessFile() recursively processes files referenced
+		// by IncludeFile directives.
+		// If includeFileDirectory is not set by a CLI option,
+		// ProcessFile() will set the linter's IncludeFileDirectory
+		// to the parent directory of the first file is processes.
+		// That is done because IncludeFile directives are processed
+		// as though they were in the file that was processed first.
+		// There might be multiple files passed as CLI arguments,
+		// which might not be in the same parent directory.
+		// The IncludeFileDirectory is reset here so that it does not
+		// potentially remain set to the parent directory of the first
+		// filePath in the argument list.
+		linter.IncludeFileDirectory = *includeFileDirectory
 	}
 
 	if warningCount > 0 {

@@ -48,6 +48,9 @@ $ tar xzvf ezproxy-config-lint_Linux_x86_64.tar.gz
 $ cd ezproxy-config-lint_Linux_x86_64
 $ ./ezproxy-config-lint -help
 ezproxy-config-lint: Lint config files for EZproxy
+Usage:
+  ezproxy-config-lint [options] <file>...
+Options:
   -annotate
         Print all lines, not just lines that create warnings.
   -case
@@ -57,7 +60,7 @@ ezproxy-config-lint: Lint config files for EZproxy
   -https
         Report on URL directives which do not use the HTTPS scheme.
   -includefile-directory string
-        The directory from which the IncludeFile paths will be resolved. By default, IncludeFile paths are resolved from the config file's directory, unless they are absolute paths.
+        The directory from which the IncludeFile paths will be resolved. By default, IncludeFile paths are resolved from the parent directory of each of the file arguments, unless they are absolute paths.
   -phe
         Perform additional checks on ProxyHostnameEdit directives.
   -source

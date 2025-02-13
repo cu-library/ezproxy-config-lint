@@ -29,8 +29,8 @@ func TestInvalid(t *testing.T) {
 		t.Logf("> invalid: %s\n", filename)
 
 		l := NewLinter()
-		ret, _ := l.ProcessFile(f)
-		if ret == 0 {
+		warningCount, err := l.ProcessFile(f)
+		if err == nil && warningCount == 0 {
 			t.Errorf("Unexpected success on invalid file: %s\n", filename)
 		}
 	}
@@ -47,8 +47,8 @@ func TestValid(t *testing.T) {
 		t.Logf("> valid: %s\n", filename)
 
 		l := NewLinter()
-		ret, _ := l.ProcessFile(f)
-		if ret != 0 {
+		warningCount, err := l.ProcessFile(f)
+		if err != nil || warningCount != 0 {
 			t.Errorf("Unexpected error on valid file: %s\n", filename)
 		}
 	}

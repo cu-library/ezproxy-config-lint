@@ -93,6 +93,12 @@ func (l *Linter) ProcessFile(filePath string) (warningCount int, err error) {
 	}
 	defer f.Close()
 
+	// If the IncludeFileDirectory was not set by the caller,
+	// use the parent directory of first file the linter processes.
+	if l.IncludeFileDirectory == "" {
+		l.IncludeFileDirectory = filepath.Dir(filePath)
+	}
+
 	// Make a buffer of about 1 MB in size.
 	buf := make([]byte, 1048576)
 	// Make a scanner to go through the file line by line.
@@ -167,30 +173,21 @@ func (l *Linter) ProcessFile(filePath string) (warningCount int, err error) {
 				return warningCount, fmt.Errorf("unable to find IncludeFile path on line %q", line)
 			}
 			includeFilePath := splitLine[1]
-			help := ""
 			// If the file path for the included file is not absolute, we should
-			// join it with the IncludeFileDirectory or the parent directory
-			// of the config file.
+			// join it with the IncludeFileDirectory, which has been set by the caller
+			// or to the parent directory of the first file the linter processed.
 			if !filepath.IsAbs(includeFilePath) {
-				if l.IncludeFileDirectory != "" {
-					includeFilePath = filepath.Join(l.IncludeFileDirectory, includeFilePath)
-					help = fmt.Sprintf("The \"-includefile-directory\" option was used, joined %q with %q", l.IncludeFileDirectory, includeFilePath)
-				} else {
-					filePathDir := filepath.Dir(filePath)
-					includeFilePath = filepath.Join(filePathDir, includeFilePath)
-					help += fmt.Sprintf("This IncludeFile directive is in a config file at this path: %q\n", filePath)
-					help += fmt.Sprintf("            The IncludeFile directive resolves to this path: %q", includeFilePath)
+				includeFilePath = filepath.Join(l.IncludeFileDirectory, includeFilePath)
+				if l.Verbose {
+					fmt.Fprintf(l.Output, "       Line: %v\n", line)
+					fmt.Fprintf(l.Output, "    in file: %v\n", filePath)
+					fmt.Fprintf(l.Output, "resolves to: %v\n", includeFilePath)
 				}
 			}
 
 			includeFileWarningCount, err := l.ProcessFile(includeFilePath)
 			if err != nil {
-				// Help people debug errors with IncludeFile parent directories.
-				log.Printf("Error encountered when processing line %q.\n", line)
-				log.Println(help)
-				if l.IncludeFileDirectory == "" {
-					log.Println("You might want to try the \"-includefile-directory\" option.")
-				}
+				fmt.Fprintf(l.Output, "Error encountered when processing line %q.\n", line)
 				return warningCount, err
 			}
 			warningCount += includeFileWarningCount
