@@ -1,6 +1,7 @@
 module github.com/cu-library/ezproxy-config-lint
 
 go 1.23.4
+
 toolchain go1.24.1
 
 require (
