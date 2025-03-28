@@ -727,7 +727,7 @@ func processSourceLine(sourceLine string) (string, string, error) {
 				}
 			}
 		}
-		for c := n.FirstChild; c != nil; c = c.NextSibling {
+		for c := n.FirstChild; c != nil && oclcTitle == ""; c = c.NextSibling {
 			f(c)
 		}
 	}
