@@ -1,3 +1,4 @@
+version: "2"
 linters:
   enable:
     - bodyclose
@@ -7,7 +8,6 @@ linters:
     - goconst
     - gocritic
     - godot
-    - goimports
     - gosec
     - misspell
     - nilerr
@@ -17,9 +17,29 @@ linters:
     - unparam
     - wastedassign
     - whitespace
-linters-settings:
-  godot:
-    scope: all
-    capital: true
+  settings:
+    godot:
+      scope: all
+      capital: true
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
 issues:
   fix: true
+formatters:
+  enable:
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
