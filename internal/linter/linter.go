@@ -629,11 +629,14 @@ func (l *Linter) ProcessURL(line string) (m []string) {
 	if l.HTTPS && parsedURL.Scheme != "https" {
 		m = append(m, "URL is not using HTTPS scheme (L3007)")
 	}
-	// According to the EZproxy docs, 'Starting point URLs and config.txt',
+	// According to the EZproxy docs at
+	// https://help.oclc.org/Library_Management/EZproxy/EZproxy_configuration/Starting_point_URLs_and_config_txt,
 	// URL, Host, and HostJavaScript directives are checked for starting point URLs.
-	// URL origins should be checked against or added to PreviousOrigins.
+	// In ProcessHostAndHostJavaScript(), we verify that origins are not duplicated by using
+	// the Linter's PreviousOrigins map.
+	// URL origins should be checked against and added to that map in this function.
 	// However, so many stanzas duplicate the URL in an HJ or H line that
-	// enabling the check below will add a lot of noise to the output.
+	// adding URL origins to PreviousOrigins would add a lot of noise to the output.
 	// Possible to add behind a 'pedantic' flag later.
 	return m
 }
