@@ -1,0 +1,21 @@
+# See Issue #61
+Option X-Forwarded-For
+Option DomainCookieOnly
+ProxyHostnameEdit media2.criterionpic.com$ media2-criterionpic-com
+ProxyHostnameEdit media3.criterionpic.com$ media3-criterionpic-com
+ProxyHostnameEdit www.criterionpic.com$ www-criterionpic-com
+ProxyHostnameEdit criterionpic.com$ criterionpic-com
+ProxyHostnameEdit www.criterionondemand.com$ www-criterionondemand-com
+ProxyHostnameEdit criterionondemand.com$ criterionondemand-com
+Title Criterion on Demand (updated 20210209)
+URL https://media3.criterionpic.com
+Domain criterionpic.com
+HostJavaScript media3.criterionpic.com
+HostJavaScript www.criterionpic.com
+HostJavaScript criterionpic.com
+HostJavaScript www.criterionondemand.com
+HostJavaScript criterionondemand.com
+DomainJavaScript criterionpic.com
+DomainJavaScript criterionondemand.com
+Option Cookie
+Option NoX-Forwarded-For
