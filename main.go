@@ -31,6 +31,7 @@ func main() {
 	directiveCase := flag.Bool("case", false, "Report on directives having the wrong case.")
 	https := flag.Bool("https", false, "Report on URL directives which do not use the HTTPS scheme.")
 	source := flag.Bool("source", true, "Use source comments to check against OCLC stanzas.")
+	pedantic := flag.Bool("pedantic", false, "Enable pedantic checks.")
 	whitespace := flag.Bool("whitespace", false, "Report on trailing space or tab characters.")
 	followIncludeFile := flag.Bool("follow-includefile", true, "Also process files referenced by IncludeFile directives.")
 	includeFileDirectory := flag.String("includefile-directory", "", "The directory from which the IncludeFile paths will be resolved. "+
@@ -58,6 +59,7 @@ func main() {
 		DirectiveCase:        *directiveCase,
 		HTTPS:                *https,
 		Source:               *source,
+		Pedantic:             *pedantic,
 		Whitespace:           *whitespace,
 		FollowIncludeFile:    *followIncludeFile,
 		IncludeFileDirectory: *includeFileDirectory,

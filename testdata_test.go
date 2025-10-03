@@ -19,16 +19,37 @@ func NewLinter() *linter.Linter {
 }
 
 func TestInvalid(t *testing.T) {
-	dirContent, err := filepath.Glob("testdata/invalid/*.txt")
+	root := "testdata/invalid/"
+	dirContent, err := filepath.Glob(root + "*.txt")
 	if err != nil {
 		panic(err)
 	}
 
 	for _, f := range dirContent {
-		filename := strings.TrimPrefix(f, "testdata/invalid/")
+		filename := strings.TrimPrefix(f, root)
 		t.Logf("> invalid: %s\n", filename)
 
 		l := NewLinter()
+		warningCount, err := l.ProcessFile(f)
+		if err == nil && warningCount == 0 {
+			t.Errorf("Unexpected success on invalid file: %s\n", filename)
+		}
+	}
+}
+
+func TestInvalidPedantic(t *testing.T) {
+	root := "testdata/invalid/pedantic/"
+	dirContent, err := filepath.Glob(root + "*.txt")
+	if err != nil {
+		panic(err)
+	}
+
+	for _, f := range dirContent {
+		filename := strings.TrimPrefix(f, root)
+		t.Logf("> invalid: %s\n", filename)
+
+		l := NewLinter()
+		l.Pedantic = true
 		warningCount, err := l.ProcessFile(f)
 		if err == nil && warningCount == 0 {
 			t.Errorf("Unexpected success on invalid file: %s\n", filename)

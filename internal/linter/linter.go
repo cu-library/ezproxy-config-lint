@@ -49,6 +49,7 @@ type Linter struct {
 	DirectiveCase        bool
 	HTTPS                bool
 	Source               bool
+	Pedantic             bool
 	Whitespace           bool
 	FollowIncludeFile    bool
 	IncludeFileDirectory string
@@ -332,7 +333,7 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 	case Title:
 		m = append(m, l.ProcessTitle(line, at)...)
 	case URL:
-		m = append(m, l.ProcessURL(line)...)
+		m = append(m, l.ProcessURL(line, at)...)
 	case Host, HostJavaScript:
 		m = append(m, l.ProcessHostAndHostJavaScript(line, at)...)
 	case Domain, DomainJavaScript:
@@ -602,7 +603,7 @@ func (l *Linter) ProcessDomainAndDomainJavaScript(line string) (m []string) {
 // https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_1
 // https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_2
 // https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_3
-func (l *Linter) ProcessURL(line string) (m []string) {
+func (l *Linter) ProcessURL(line string, at string) (m []string) {
 	allowedPreviousDirectives := []Directive{
 		AllowVars,
 		EBLSecret,
@@ -640,6 +641,11 @@ func (l *Linter) ProcessURL(line string) (m []string) {
 	if l.HTTPS && parsedURL.Scheme != "https" {
 		m = append(m, "URL is not using HTTPS scheme (L3007)")
 	}
+
+	if !l.Pedantic {
+		return m
+	}
+
 	// According to the EZproxy docs at
 	// https://help.oclc.org/Library_Management/EZproxy/EZproxy_configuration/Starting_point_URLs_and_config_txt,
 	// URL, Host, and HostJavaScript directives are checked for starting point URLs.
@@ -649,6 +655,13 @@ func (l *Linter) ProcessURL(line string) (m []string) {
 	// However, so many stanzas duplicate the URL in an HJ or H line that
 	// adding URL origins to PreviousOrigins would add a lot of noise to the output.
 	// Possible to add behind a 'pedantic' flag later.
+	origin := fmt.Sprintf("%v://%v", parsedURL.Scheme, parsedURL.Host)
+	originSeenAt, originSeen := l.PreviousOrigins[origin]
+	if originSeen {
+		m = append(m, fmt.Sprintf("Origin already seen at %q (L2002)", originSeenAt))
+	} else {
+		l.PreviousOrigins[origin] = at
+	}
 	return m
 }
 

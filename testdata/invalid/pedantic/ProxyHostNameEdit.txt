@@ -1,0 +1,40 @@
+ProxyHostnameEdit m.cshprotocols.cshlp.org$ m-cshprotocols-cshlp-org
+ProxyHostnameEdit cshperspectives.cshlp.org$ cshperspectives-cshlp-org
+ProxyHostnameEdit cshprotocols.cshlp.org$ cshprotocols-cshlp-org
+ProxyHostnameEdit genesdev.cshlp.org$ genesdev-cshlp-org
+ProxyHostnameEdit genome.cshlp.org$ genome-cshlp-org
+ProxyHostnameEdit learnmem.cshlp.org$ learnmem-cshlp-org
+ProxyHostnameEdit rnajournal.cshlp.org$ rnajournal-cshlp-org
+ProxyHostnameEdit symposium.cshlp.org$ symposium-cshlp-org
+ProxyHostnameEdit www.cshlp.org$ www-cshlp-org
+ProxyHostnameEdit www.cshlpress.org$ www-cshlpress-org
+ProxyHostnameEdit www.genesdev.org$ www-genesdev-org
+ProxyHostnameEdit www.rnajournal.org$ www-rnajournal-org
+ProxyHostnameEdit rnajournal.org$ rnajournal-org
+T Cold Spring Harbor Laboratory Press (OCLC IncludeFile updated 20230519)
+U https://www.cshlpress.org
+HJ cshperspectives.cshlp.org
+HJ cshprotocols.cshlp.org
+HJ genesdev.cshlp.org
+HJ genome.cshlp.org
+HJ https://cshperspectives.cshlp.org
+HJ https://genesdev.cshlp.org
+HJ https://genome.cshlp.org
+HJ https://rnajournal.cshlp.org
+HJ https://rnajournal.org
+HJ https://www.cshlpress.org
+HJ https://www.rnajournal.org
+HJ https://learnmem.cshlp.org
+HJ learnmem.cshlp.org
+HJ rnajournal.cshlp.org
+HJ rnajournal.org
+HJ m.cshprotocols.cshlp.org
+HJ symposium.cshlp.org
+HJ www.cshlp.org
+HJ www.cshlpress.org
+HJ www.genesdev.org
+HJ www.rnajournal.org
+DJ cshlp.org
+DJ cshlpress.org
+DJ genesdev.org
+DJ rnajournal.org
