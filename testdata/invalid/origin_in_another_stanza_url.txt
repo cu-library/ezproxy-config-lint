@@ -1,0 +1,8 @@
+Title Siku Quanshu
+URL http://skqs.yourlib.org
+DJ skqs.yourlib.org
+
+Title Siku Quanshu Two
+URL http://skqs2.yourlib.org
+HJ http://skqs.yourlib.org
+DJ skqs.yourlib.org
