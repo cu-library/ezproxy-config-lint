@@ -39,7 +39,7 @@ type State struct {
 	Source                    string
 	Title                     string
 	URL                       string
-	ProxyHostnameEditPatterns []string
+	ProxyHostnameEditPatterns map[string]*regexp.Regexp
 }
 
 type Linter struct {
@@ -213,6 +213,9 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 	}
 	if l.PreviousOrigins == nil {
 		l.PreviousOrigins = make(map[string]string)
+	}
+	if l.State.ProxyHostnameEditPatterns == nil {
+		l.State.ProxyHostnameEditPatterns = make(map[string]*regexp.Regexp)
 	}
 
 	// Does the line end in a space or tab character?
@@ -415,12 +418,15 @@ func (l *Linter) ProcessProxyHostnameEdit(line string) (m []string) {
 			m = append(m, "Replace part of \"ProxyHostnameEdit\" directive is malformed (L3003)")
 		}
 
-		for _, v := range l.State.ProxyHostnameEditPatterns {
-			if strings.HasSuffix(find, v) {
-				m = append(m, fmt.Sprintf("\"ProxyHostnameEdit\" domains should be placed in deepest-to-shallowest order, previous pattern: %q (L1009)", v))
+		for pattern, re := range l.State.ProxyHostnameEditPatterns {
+			if re.MatchString(find) {
+				m = append(m, fmt.Sprintf("\"ProxyHostnameEdit\" domains should be placed in deepest-to-shallowest order, previous pattern: %q (L1009)", pattern))
 			}
 		}
-		l.State.ProxyHostnameEditPatterns = append(l.State.ProxyHostnameEditPatterns, find)
+
+		// For every pattern we see, create a regexp to match any subdomains
+		re := regexp.MustCompile(`[.]` + regexp.QuoteMeta(find) + `$`)
+		l.State.ProxyHostnameEditPatterns[find] = re
 	}
 	return m
 }

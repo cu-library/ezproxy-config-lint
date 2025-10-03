@@ -1,6 +1,7 @@
 # See Issue #61
 Option X-Forwarded-For
 Option DomainCookieOnly
+ProxyHostnameEdit 2.criterionpic.com$ 2-criterionpic-com
 ProxyHostnameEdit media2.criterionpic.com$ media2-criterionpic-com
 ProxyHostnameEdit media3.criterionpic.com$ media3-criterionpic-com
 ProxyHostnameEdit www.criterionpic.com$ www-criterionpic-com
