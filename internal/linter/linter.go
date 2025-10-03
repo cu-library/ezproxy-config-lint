@@ -39,7 +39,7 @@ type State struct {
 	Source                    string
 	Title                     string
 	URL                       string
-	ProxyHostnameEditDepth    int
+	ProxyHostnameEditPatterns []string
 }
 
 type Linter struct {
@@ -397,25 +397,30 @@ func (l *Linter) ProcessProxyHostnameEdit(line string) (m []string) {
 	if !slices.Contains(allowedPreviousDirectives, l.State.Previous) {
 		m = append(m, fmt.Sprintf("\"ProxyHostnameEdit\" directive is out of order, previous directive: %q (L1008)", l.State.Previous))
 	}
+
 	// Does the ProxyHostnameEdit line have both a find and replace?
 	findReplacePair := strings.Split(TrimLabel(line, l.State.Label), " ")
 	if len(findReplacePair) != 2 {
 		m = append(m, "\"ProxyHostnameEdit\" directive must have both a find and replace qualifier (L3001)")
 		return m
 	}
+
 	if l.AdditionalPHEChecks {
 		find, found := strings.CutSuffix(findReplacePair[0], "$")
 		if !found {
 			m = append(m, "Find part of \"ProxyHostnameEdit\" directive should end with a $ (L3002)")
 		}
+
 		if strings.ReplaceAll(find, ".", "-") != findReplacePair[1] {
 			m = append(m, "Replace part of \"ProxyHostnameEdit\" directive is malformed (L3003)")
 		}
-		depth := strings.Count(find, ".") + 1
-		if l.State.ProxyHostnameEditDepth != 0 && l.State.ProxyHostnameEditDepth < depth {
-			m = append(m, "\"ProxyHostnameEdit\" domains should be placed in deepest-to-shallowest order (L1009)")
+
+		for _, v := range l.State.ProxyHostnameEditPatterns {
+			if strings.HasSuffix(find, v) {
+				m = append(m, fmt.Sprintf("\"ProxyHostnameEdit\" domains should be placed in deepest-to-shallowest order, previous pattern: %q (L1009)", v))
+			}
 		}
-		l.State.ProxyHostnameEditDepth = depth
+		l.State.ProxyHostnameEditPatterns = append(l.State.ProxyHostnameEditPatterns, find)
 	}
 	return m
 }
