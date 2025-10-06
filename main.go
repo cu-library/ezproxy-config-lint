@@ -30,6 +30,7 @@ func main() {
 	additionalPHEChecks := flag.Bool("phe", false, "Perform additional checks on ProxyHostnameEdit directives.")
 	directiveCase := flag.Bool("case", false, "Report on directives having the wrong case.")
 	https := flag.Bool("https", false, "Report on URL directives which do not use the HTTPS scheme.")
+	origins := flag.Bool("origins", false, "Report on duplicate origins in H or HJ directives within a stanza.")
 	source := flag.Bool("source", true, "Use source comments to check against OCLC stanzas.")
 	whitespace := flag.Bool("whitespace", false, "Report on trailing space or tab characters.")
 	followIncludeFile := flag.Bool("follow-includefile", true, "Also process files referenced by IncludeFile directives.")
@@ -57,6 +58,7 @@ func main() {
 		AdditionalPHEChecks:  *additionalPHEChecks,
 		DirectiveCase:        *directiveCase,
 		HTTPS:                *https,
+		Origins:              *origins,
 		Source:               *source,
 		Whitespace:           *whitespace,
 		FollowIncludeFile:    *followIncludeFile,
