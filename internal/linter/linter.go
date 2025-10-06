@@ -37,9 +37,11 @@ type State struct {
 	Previous                  Directive `json:"PreviousDirective"`
 	PreviousMultilineSegments string
 	Source                    string
+	ProxyHostnameEditPatterns map[string]*regexp.Regexp
 	Title                     string
 	URL                       string
-	ProxyHostnameEditPatterns map[string]*regexp.Regexp
+	URLOrigin                 string
+	URLAt                     string
 }
 
 type Linter struct {
@@ -228,6 +230,7 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 	line = strings.TrimSpace(line)
 
 	// Is the line empty, or an empty comment?
+	// If so, we're at the end of the stanza.
 	if line == "" || line == "#" {
 		if l.State.Title != "" && l.State.URL == "" {
 			m = append(m, fmt.Sprintf("Stanza %q has Title but no URL (L4003)", l.State.Title))
@@ -246,6 +249,12 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 					"corresponding %q line at the end of the stanza (L4002)", l.State.Title, option, optionPairs[option]))
 			}
 		}
+
+		// If present, add the stored URL origin to the PreviousOrigins map.
+		if l.State.URLOrigin != "" {
+			l.PreviousOrigins[l.State.URLOrigin] = l.State.URLAt
+		}
+
 		// Reset the stanza state.
 		l.State = State{LastLineEmpty: true}
 
@@ -332,7 +341,7 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 	case Title:
 		m = append(m, l.ProcessTitle(line, at)...)
 	case URL:
-		m = append(m, l.ProcessURL(line)...)
+		m = append(m, l.ProcessURL(line, at)...)
 	case Host, HostJavaScript:
 		m = append(m, l.ProcessHostAndHostJavaScript(line, at)...)
 	case Domain, DomainJavaScript:
@@ -602,7 +611,7 @@ func (l *Linter) ProcessDomainAndDomainJavaScript(line string) (m []string) {
 // https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_1
 // https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_2
 // https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_3
-func (l *Linter) ProcessURL(line string) (m []string) {
+func (l *Linter) ProcessURL(line, at string) (m []string) {
 	allowedPreviousDirectives := []Directive{
 		AllowVars,
 		EBLSecret,
@@ -643,12 +652,17 @@ func (l *Linter) ProcessURL(line string) (m []string) {
 	// According to the EZproxy docs at
 	// https://help.oclc.org/Library_Management/EZproxy/EZproxy_configuration/Starting_point_URLs_and_config_txt,
 	// URL, Host, and HostJavaScript directives are checked for starting point URLs.
-	// In ProcessHostAndHostJavaScript(), we verify that origins are not duplicated by using
-	// the Linter's PreviousOrigins map.
-	// URL origins should be checked against and added to that map in this function.
-	// However, so many stanzas duplicate the URL in an HJ or H line that
-	// adding URL origins to PreviousOrigins would add a lot of noise to the output.
-	// Possible to add behind a 'pedantic' flag later.
+	// So many stanzas duplicate the URL in an HJ or H line that adding the URL's
+	// origin to PreviousOrigins would add a lot of noise to the output.
+	// Instead, we add the URL's origin and the filename/line combination (the 'at')
+	// to the Linter's State so that we can add it to PreviousOrigins when we're done
+	// processing the stanza.
+	l.State.URLOrigin = fmt.Sprintf("%v://%v", parsedURL.Scheme, parsedURL.Host)
+	l.State.URLAt = at
+	originSeenAt, originSeen := l.PreviousOrigins[l.State.URLOrigin]
+	if originSeen {
+		m = append(m, fmt.Sprintf("Origin already seen at %q (L2002)", originSeenAt))
+	}
 	return m
 }
 
