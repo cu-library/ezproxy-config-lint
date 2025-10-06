@@ -61,6 +61,8 @@ Options:
         Report on URL directives which do not use the HTTPS scheme.
   -includefile-directory string
         The directory from which the IncludeFile paths will be resolved. By default, IncludeFile paths are resolved from the parent directory of each of the file arguments, unless they are absolute paths.
+  -origins
+        Report on duplicate origins in H or HJ directives within a stanza.
   -phe
         Perform additional checks on ProxyHostnameEdit directives.
   -source

@@ -42,6 +42,7 @@ type State struct {
 	URL                       string
 	URLOrigin                 string
 	URLAt                     string
+	StanzaOrigins             map[string]string
 }
 
 type Linter struct {
@@ -50,6 +51,7 @@ type Linter struct {
 	AdditionalPHEChecks  bool
 	DirectiveCase        bool
 	HTTPS                bool
+	Origins              bool
 	Source               bool
 	Whitespace           bool
 	FollowIncludeFile    bool
@@ -219,6 +221,9 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 	if l.State.ProxyHostnameEditPatterns == nil {
 		l.State.ProxyHostnameEditPatterns = make(map[string]*regexp.Regexp)
 	}
+	if l.State.StanzaOrigins == nil {
+		l.State.StanzaOrigins = make(map[string]string)
+	}
 
 	// Does the line end in a space or tab character?
 	if l.Whitespace && TrailingSpaceOrTabCheck(line) {
@@ -254,6 +259,9 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 		if l.State.URLOrigin != "" {
 			l.PreviousOrigins[l.State.URLOrigin] = l.State.URLAt
 		}
+
+		// Copy the origins from this stanza to the PreviousOrigins map.
+		maps.Copy(l.PreviousOrigins, l.State.StanzaOrigins)
 
 		// Reset the stanza state.
 		l.State = State{LastLineEmpty: true}
@@ -433,7 +441,7 @@ func (l *Linter) ProcessProxyHostnameEdit(line string) (m []string) {
 			}
 		}
 
-		// For every pattern we see, create a regexp to match any subdomains
+		// For every pattern we see, create a regexp to match any subdomains.
 		re := regexp.MustCompile(`[.]` + regexp.QuoteMeta(find) + `$`)
 		l.State.ProxyHostnameEditPatterns[find] = re
 	}
@@ -581,12 +589,20 @@ func (l *Linter) ProcessHostAndHostJavaScript(line, at string) (m []string) {
 		}
 	}
 	origin := fmt.Sprintf("%v://%v", parsedURL.Scheme, parsedURL.Host)
+	// Check the origin against origins seen in other stanzas.
 	originSeenAt, originSeen := l.PreviousOrigins[origin]
 	if originSeen {
 		m = append(m, fmt.Sprintf("Origin already seen at %q (L2002)", originSeenAt))
-	} else {
-		l.PreviousOrigins[origin] = at
 	}
+	// Check the origin against origins seen in the current stanza.
+	originSeenAt, originSeen = l.State.StanzaOrigins[origin]
+	if l.Origins && originSeen {
+		m = append(m, fmt.Sprintf("Origin already seen at %q (L2005)", originSeenAt))
+	}
+	if !originSeen {
+		l.State.StanzaOrigins[origin] = at
+	}
+
 	return m
 }
 

@@ -17,9 +17,10 @@ Explanations of all checks in `ezproxy-config-lint`.
     - [L1012 - `AddUserHeader` directive is out of order](#l1012---adduserheader-directive-is-out-of-order)
   - [L2 - Duplication Issues](#l2---duplication-issues)
     - [L2001 - Duplicate `Title` directive in stanza](#l2001---duplicate-title-directive-in-stanza)
-    - [L2002 - Origin already seen](#l2002---origin-already-seen)
+    - [L2002 - Origin already seen in another stanza](#l2002---origin-already-seen-in-another-stanza)
     - [L2003 - Duplicate `URL` directive in stanza](#l2003---duplicate-url-directive-in-stanza)
     - [L2004 - `Title` value already seen](#l2004---title-value-already-seen)
+    - [L2005 - Origin already seen in this stanza](#l2005---origin-already-seen-in-this-stanza)
   - [L3 - Malformation Issues](#l3---malformation-issues)
     - [L3001 - `ProxyHostnameEdit` directive must have both a find and replace qualifier](#l3001---proxyhostnameedit-directive-must-have-both-a-find-and-replace-qualifier)
     - [L3002 - Find part of `ProxyHostnameEdit` directive should end with a `$`](#l3002---find-part-of-proxyhostnameedit-directive-should-end-with-a-)
@@ -282,12 +283,12 @@ More than one `Title` directive present in a stanza.
 
 ---------
 
-### L2002 - Origin already seen
+### L2002 - Origin already seen in another stanza
 
 EZproxy [only reads origins and does not read paths](https://help.oclc.org/Library_Management/EZproxy/Configure_resources/Groups).
 The origin is the combination of the scheme (http or https), the host (google.com, help.oclc.org), and the port.
 EZproxy does not care about paths (/astronomy, /login).
-The linter will report if you've already used an origin, so that you can ensure that limiting access via Groups works as you expect.
+The linter will report if you've already used an origin in another stanza, so that you can ensure that limiting access via Groups works as you expect.
 
 ---------
 
@@ -301,6 +302,19 @@ More than one `URL` directive present in a stanza.
 
 The linter tracks stanza `Title` values and reports when a value has been seen more than
 once.
+
+---------
+
+### L2005 - Origin already seen in this stanza
+
+This check is enabled with the `-origins` option.
+
+When enabled, this check reports on `Host` and `HostJavaScript` directives which have duplicate origins within the same stanza.
+
+Note that this check does not report on origins shared between a stanza's `URL` directive and `Host` or `HostJavaScript` directives.
+While `URL`, `Host`, and `HostJavaScript` directives all add origins to the "Starting Point URLs", in practice the origin in a stanza's
+`URL` directive is usually also in stanza's `Host` or `HostJavaScript` directives.
+See [this comment](https://github.com/cu-library/ezproxy-config-lint/pull/67#issuecomment-3372155151) for further discussion.
 
 ## L3 - Malformation Issues
 
