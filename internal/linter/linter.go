@@ -433,7 +433,7 @@ func (l *Linter) ProcessProxyHostnameEdit(line string) (m []string) {
 			}
 		}
 
-		// For every pattern we see, create a regexp to match any subdomains
+		// For every pattern we see, create a regexp to match any subdomains.
 		re := regexp.MustCompile(`[.]` + regexp.QuoteMeta(find) + `$`)
 		l.State.ProxyHostnameEditPatterns[find] = re
 	}
