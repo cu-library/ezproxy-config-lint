@@ -4,7 +4,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/cu-library/ezproxy-config-lint/internal/linter"
@@ -18,124 +17,50 @@ func NewLinter() *linter.Linter {
 	return l
 }
 
-func TestInvalid(t *testing.T) {
-	root := "testdata/invalid/"
-	dirContent, err := filepath.Glob(root + "*.txt")
-	if err != nil {
-		panic(err)
+type testOpts struct {
+	Name    string
+	Case    bool
+	Fail    bool
+	HTTPS   bool
+	Origins bool
+	PHE     bool
+}
+
+func TestDataFiles(t *testing.T) {
+	opts := []testOpts{
+		{Name: "valid"},
+		{Name: "invalid", Fail: true},
+		{Name: "invalid_case", Fail: true, Case: true},
+		{Name: "invalid_https", Fail: true, HTTPS: true},
+		{Name: "invalid_origins", Fail: true, Origins: true},
+		{Name: "invalid_phe", Fail: true, PHE: true},
 	}
 
-	for _, f := range dirContent {
-		filename := strings.TrimPrefix(f, root)
-		t.Logf("> invalid: %s\n", filename)
-
-		l := NewLinter()
-		warningCount, err := l.ProcessFile(f)
-		if err == nil && warningCount == 0 {
-			t.Errorf("Unexpected success on invalid file: %s\n", filename)
-		}
+	for _, o := range opts {
+		t.Run(o.Name, func(t *testing.T) {
+			runDataFileTest(t, o)
+		})
 	}
 }
 
-func TestInvalidCase(t *testing.T) {
-	root := "testdata/invalid_case/"
-	dirContent, err := filepath.Glob(root + "*.txt")
+func runDataFileTest(t *testing.T, o testOpts) {
+	root := filepath.Join("testdata", o.Name)
+	dirContent, err := filepath.Glob(filepath.Join(root, "*.txt"))
 	if err != nil {
 		panic(err)
 	}
 
 	for _, f := range dirContent {
-		filename := strings.TrimPrefix(f, root)
-		t.Logf("> invalid: %s\n", filename)
-
+		t.Logf("> %s", f)
 		l := NewLinter()
-		l.DirectiveCase = true
+		l.DirectiveCase = o.Case
+		l.HTTPS = o.HTTPS
+		l.Origins = o.Origins
+		l.AdditionalPHEChecks = o.PHE
 
 		warningCount, err := l.ProcessFile(f)
-		if err == nil && warningCount == 0 {
-			t.Errorf("Unexpected success on invalid file: %s\n", filename)
-		}
-	}
-}
-
-func TestInvalidHTTPS(t *testing.T) {
-	root := "testdata/invalid_https/"
-	dirContent, err := filepath.Glob(root + "*.txt")
-	if err != nil {
-		panic(err)
-	}
-
-	for _, f := range dirContent {
-		filename := strings.TrimPrefix(f, root)
-		t.Logf("> invalid: %s\n", filename)
-
-		l := NewLinter()
-		l.HTTPS = true
-
-		warningCount, err := l.ProcessFile(f)
-		if err == nil && warningCount == 0 {
-			t.Errorf("Unexpected success on invalid file: %s\n", filename)
-		}
-	}
-}
-
-func TestInvalidOrigins(t *testing.T) {
-	root := "testdata/invalid_origins/"
-	dirContent, err := filepath.Glob(root + "*.txt")
-	if err != nil {
-		panic(err)
-	}
-
-	for _, f := range dirContent {
-		filename := strings.TrimPrefix(f, root)
-		t.Logf("> invalid: %s\n", filename)
-
-		l := NewLinter()
-		l.Origins = true
-
-		warningCount, err := l.ProcessFile(f)
-		if err == nil && warningCount == 0 {
-			t.Errorf("Unexpected success on invalid file: %s\n", filename)
-		}
-	}
-}
-
-func TestInvalidPHE(t *testing.T) {
-	root := "testdata/invalid_phe/"
-	dirContent, err := filepath.Glob(root + "*.txt")
-	if err != nil {
-		panic(err)
-	}
-
-	for _, f := range dirContent {
-		filename := strings.TrimPrefix(f, root)
-		t.Logf("> invalid: %s\n", filename)
-
-		l := NewLinter()
-		l.AdditionalPHEChecks = true
-
-		warningCount, err := l.ProcessFile(f)
-		if err == nil && warningCount == 0 {
-			t.Errorf("Unexpected success on invalid file: %s\n", filename)
-		}
-	}
-}
-
-func TestValid(t *testing.T) {
-	root := "testdata/valid/"
-	dirContent, err := filepath.Glob(root + "*.txt")
-	if err != nil {
-		panic(err)
-	}
-
-	for _, f := range dirContent {
-		filename := strings.TrimPrefix(f, root)
-		t.Logf("> valid: %s\n", filename)
-
-		l := NewLinter()
-		warningCount, err := l.ProcessFile(f)
-		if err != nil || warningCount != 0 {
-			t.Errorf("Unexpected error on valid file: %s\n", filename)
+		if o.Fail && (err == nil && warningCount == 0) {
+			t.Errorf("Unexpected success on invalid file: %s\n", f)
 		}
 	}
 }
