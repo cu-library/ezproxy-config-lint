@@ -59,8 +59,12 @@ func runDataFileTest(t *testing.T, o testOpts) {
 		l.AdditionalPHEChecks = o.PHE
 
 		warningCount, err := l.ProcessFile(f)
-		if o.Fail && (err == nil && warningCount == 0) {
-			t.Errorf("Unexpected success on invalid file: %s\n", f)
+		if o.Fail {
+			if err == nil && warningCount == 0 {
+				t.Errorf("Unexpected success on invalid file: %s\n", f)
+			}
+		} else if err != nil || warningCount != 0 {
+			t.Errorf("Unexpected error on valid file: %s\n", f)
 		}
 	}
 }
