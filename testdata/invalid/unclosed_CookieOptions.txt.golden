@@ -1,0 +1,4 @@
+testdata/invalid/unclosed_CookieOptions.txt:4: ↑ Stanza "Title One" has "Option DomainCookieOnly" but doesn't have a corresponding "Option Cookie" line at the end of the stanza (L4002)
+testdata/invalid/unclosed_CookieOptions.txt:9: ↑ Stanza "Title Two" has "Option DomainCookieOnly" but doesn't have a corresponding "Option Cookie" line at the end of the stanza (L4002)
+testdata/invalid/unclosed_CookieOptions.txt:13: ↑ Stanza "Title Three" has "Option CookiePassThrough" but doesn't have a corresponding "Option Cookie" line at the end of the stanza (L4002)
+testdata/invalid/unclosed_CookieOptions.txt:17: ↑ Stanza "Title Four" has "Option CookiePassThrough" but doesn't have a corresponding "Option Cookie" line at the end of the stanza (L4002)

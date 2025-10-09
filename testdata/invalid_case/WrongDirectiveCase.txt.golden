@@ -1,0 +1,1 @@
+testdata/invalid_case/WrongDirectiveCase.txt:1: title Siku Quanshu ← "title" directive does not have the right letter casing. It should be replaced by "Title" (L5001)

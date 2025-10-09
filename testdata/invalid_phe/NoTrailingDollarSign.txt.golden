@@ -1,0 +1,1 @@
+testdata/invalid_phe/NoTrailingDollarSign.txt:13: ProxyHostnameEdit rnajournal.org rnajournal-org ← Find part of "ProxyHostnameEdit" directive should end with a $ (L3002)

@@ -1,19 +1,21 @@
 package main
 
 import (
+	"bytes"
+	"flag"
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"testing"
 
 	"github.com/cu-library/ezproxy-config-lint/internal/linter"
 )
 
+var update = flag.Bool("update", false, "Update golden testdata fixtures")
+
 func NewLinter() *linter.Linter {
 	l := &linter.Linter{Output: io.Discard, FollowIncludeFile: true}
-	if testing.Verbose() {
-		l.Output = os.Stdout
-	}
 	return l
 }
 
@@ -50,21 +52,56 @@ func runDataFileTest(t *testing.T, o testOpts) {
 		panic(err)
 	}
 
+	// regexp to match terminal color sequences.
+	reColor := regexp.MustCompile(`\033\[\d+m`)
+
 	for _, f := range dirContent {
-		t.Logf("> %s", f)
 		l := NewLinter()
 		l.DirectiveCase = o.Case
 		l.HTTPS = o.HTTPS
 		l.Origins = o.Origins
 		l.AdditionalPHEChecks = o.PHE
 
+		buf := bytes.NewBuffer(nil)
+		l.Output = buf
+
 		warningCount, err := l.ProcessFile(f)
+
+		// Strip color sequences from output
+		results := reColor.ReplaceAll(buf.Bytes(), nil)
+
 		if o.Fail {
+			golden := f + ".golden"
+			if *update {
+				// If we're in update mode, strip out the terminal color
+				// sequences before writing the golden file.
+				err := os.WriteFile(golden, results, 0644)
+				if err != nil {
+					panic(err)
+				}
+			}
+
+			expected, err := os.ReadFile(golden)
+			if err != nil {
+				t.Errorf("Failed to read golden fixture: %s\nUse `go test -update ./...` to update fixtures.", golden)
+				continue
+			}
+
 			if err == nil && warningCount == 0 {
-				t.Errorf("Unexpected success on invalid file: %s\n", f)
+				t.Errorf("Unexpected success on invalid file: %s\nwant:\n%s", f, expected)
+				continue
+			}
+
+			// Verify that the output matches the golden fixture.
+			if !bytes.Equal(results, expected) {
+				t.Errorf("Results did not match golden fixture:\nwant:\n%s\ngot:\n%s", string(expected), string(results))
+
+				// dmp := diffmatchpatch.New()
+				// diff := dmp.DiffMain(string(expected), buf.String(), false)
+				// t.Errorf("Results did not match golden fixture:\n%s", dmp.DiffPrettyText(diff))
 			}
 		} else if err != nil || warningCount != 0 {
-			t.Errorf("Unexpected error on valid file: %s\n", f)
+			t.Errorf("Unexpected error on valid file: %s\n%s", f, string(results))
 		}
 	}
 }

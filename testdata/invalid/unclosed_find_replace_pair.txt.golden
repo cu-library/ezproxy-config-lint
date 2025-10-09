@@ -1,0 +1,2 @@
+testdata/invalid/unclosed_find_replace_pair.txt:2: stnameEdit global.factiva.com$ global-factiva-com ← Unknown directive "stnameEdit" (L9001)
+testdata/invalid/unclosed_find_replace_pair.txt:33: NeverProxy widgets.dowjones.com ← "Find" directive must be immediately proceeded with a "Replace" directive (L4004)

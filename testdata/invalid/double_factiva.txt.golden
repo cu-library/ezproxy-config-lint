@@ -1,0 +1,3 @@
+testdata/invalid/double_factiva.txt:43: Title Factiva (updated 20240724) ← "Title" directive value already seen at "testdata/invalid/double_factiva.txt:6" (L2004)
+testdata/invalid/double_factiva.txt:49: URL https://global.factiva.com/en/sess/login.asp?xsid=[PLACE-XSID-HERE] ← Origin already seen at "testdata/invalid/double_factiva.txt:12" (L2002)
+testdata/invalid/double_factiva.txt:50: HJ www.factiva.com ← Origin already seen at "testdata/invalid/double_factiva.txt:13" (L2002)

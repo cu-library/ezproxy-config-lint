@@ -1,0 +1,1 @@
+testdata/invalid/unclosed_optionxforwardedfor.txt:8: ↑ Stanza "CAS MethodsNow" has "Option X-Forwarded-For" but doesn't have a corresponding "Option NoX-Forwarded-For" line at the end of the stanza (L4002)

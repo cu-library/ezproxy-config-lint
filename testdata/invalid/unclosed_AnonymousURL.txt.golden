@@ -1,0 +1,1 @@
+testdata/invalid/unclosed_AnonymousURL.txt:34: ↑ Stanza "Taylor Francis eBooks (updated 20210702)" has AnonymousURL but doesn't have a corresponding "AnonymousURL -*" line at the end of the stanza (L4001)

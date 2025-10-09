@@ -1,0 +1,1 @@
+testdata/invalid/origin_in_another_stanza_url.txt:7: HJ http://skqs.yourlib.org ← Origin already seen at "testdata/invalid/origin_in_another_stanza_url.txt:2" (L2002)

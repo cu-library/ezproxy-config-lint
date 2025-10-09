@@ -1,0 +1,1 @@
+testdata/invalid/unclosed_optionuft16.txt:4: ↑ Stanza "Siku Quanshu" has "Option UTF16" but doesn't have a corresponding "Option NoUTF16" line at the end of the stanza (L4002)
