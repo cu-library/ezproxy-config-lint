@@ -6,10 +6,10 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"regexp"
 	"testing"
 
 	"github.com/cu-library/ezproxy-config-lint/internal/linter"
+	"github.com/fatih/color"
 )
 
 var update = flag.Bool("update", false, "Update golden testdata fixtures")
@@ -38,11 +38,17 @@ func TestDataFiles(t *testing.T) {
 		{Name: "invalid_phe", Fail: true, PHE: true},
 	}
 
+	// Disable colors for these tests.
+	origColor := color.NoColor
+	color.NoColor = true
+
 	for _, o := range opts {
 		t.Run(o.Name, func(t *testing.T) {
 			runDataFileTest(t, o)
 		})
 	}
+
+	color.NoColor = origColor
 }
 
 func runDataFileTest(t *testing.T, o testOpts) {
@@ -51,9 +57,6 @@ func runDataFileTest(t *testing.T, o testOpts) {
 	if err != nil {
 		panic(err)
 	}
-
-	// regexp to match terminal color sequences.
-	reColor := regexp.MustCompile(`\033\[\d+m`)
 
 	for _, f := range dirContent {
 		l := NewLinter()
@@ -67,15 +70,12 @@ func runDataFileTest(t *testing.T, o testOpts) {
 
 		warningCount, err := l.ProcessFile(f)
 
-		// Strip color sequences from output
-		results := reColor.ReplaceAll(buf.Bytes(), nil)
-
 		if o.Fail {
 			golden := f + ".golden"
 			if *update {
 				// If we're in update mode, strip out the terminal color
 				// sequences before writing the golden file.
-				err := os.WriteFile(golden, results, 0644)
+				err := os.WriteFile(golden, buf.Bytes(), 0644)
 				if err != nil {
 					panic(err)
 				}
@@ -93,15 +93,11 @@ func runDataFileTest(t *testing.T, o testOpts) {
 			}
 
 			// Verify that the output matches the golden fixture.
-			if !bytes.Equal(results, expected) {
-				t.Errorf("Results did not match golden fixture:\nwant:\n%s\ngot:\n%s", string(expected), string(results))
-
-				// dmp := diffmatchpatch.New()
-				// diff := dmp.DiffMain(string(expected), buf.String(), false)
-				// t.Errorf("Results did not match golden fixture:\n%s", dmp.DiffPrettyText(diff))
+			if !bytes.Equal(buf.Bytes(), expected) {
+				t.Errorf("Results did not match golden fixture:\nwant:\n%s\ngot:\n%s", string(expected), string(buf.Bytes()))
 			}
 		} else if err != nil || warningCount != 0 {
-			t.Errorf("Unexpected error on valid file: %s\n%s", f, string(results))
+			t.Errorf("Unexpected error on valid file: %s\n%s", f, string(buf.Bytes()))
 		}
 	}
 }
