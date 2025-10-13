@@ -1,0 +1,1 @@
+testdata/invalid_phe/WrongOrder.txt:13: ProxyHostnameEdit www.rnajournal.org$ www-rnajournal-org ← "ProxyHostnameEdit" domains should be placed in deepest-to-shallowest order, previous pattern: "rnajournal.org" (L1009)

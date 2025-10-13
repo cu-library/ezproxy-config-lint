@@ -1,0 +1,1 @@
+testdata/invalid/unclosed_optionhideezproxy.txt:14: ↑ Stanza "ImageQuest" has "Option HideEZproxy" but doesn't have a corresponding "Option NoHideEZproxy" line at the end of the stanza (L4002)

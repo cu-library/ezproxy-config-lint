@@ -1,0 +1,2 @@
+testdata/invalid/double_factiva_from_include.txt:4: URL https://global.factiva.com/en/sess/login.asp?xsid=[PLACE-XSID-HERE] ← Origin already seen at "testdata/valid/factiva.txt:12" (L2002)
+testdata/invalid/double_factiva_from_include.txt:5: HJ www.factiva.com ← Origin already seen at "testdata/valid/factiva.txt:13" (L2002)

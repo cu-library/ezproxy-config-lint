@@ -1,0 +1,1 @@
+testdata/invalid_https/NotUsingHTTPSScheme.txt:3: URL http://ejournals.ebsco.com ← URL is not using HTTPS scheme (L3007)

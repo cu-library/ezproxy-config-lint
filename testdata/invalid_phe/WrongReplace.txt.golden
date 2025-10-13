@@ -1,0 +1,2 @@
+testdata/invalid_phe/WrongReplace.txt:5: ProxyHostnameEdit genome.cshlp.org$ genome-chlp-org ← Replace part of "ProxyHostnameEdit" directive is malformed (L3003)
+testdata/invalid_phe/WrongReplace.txt:8: ProxyHostnameEdit symposium.cshlp.org$ symposium.cshlp-org ← Replace part of "ProxyHostnameEdit" directive is malformed (L3003)
