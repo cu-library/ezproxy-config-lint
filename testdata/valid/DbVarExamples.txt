@@ -1,0 +1,65 @@
+DbVar0 Science
+Title Some Database
+URL https://www.somesciencedb.com/
+Domain somesciencedb.com
+
+Title Other Science Database
+URL https://www.othersciencedb.com/
+Domain othersciencedb.com
+
+DbVar1 Law
+HTTPMethod SEARCH
+Title Another Law Database
+URL https://www.anotherlawdb.com/
+Domain anotherlawdb.com
+
+DbVar2 Architecture
+Title Architecture Database
+URL https://www.architecture.com
+Domain architecture.com
+
+DbVar3 Math
+Option CookiePassthrough
+Title Math Database
+URL https://www.math.com
+Domain math.com
+Option Cookie
+
+DbVar4 Biology
+ProxyHostnameEdit www.biologyresearchhub.com$ www-biologyresearchhub-com
+Title Biology Research Hub
+URL https://www.biologyresearchhub.com
+Domain biologyresearchhub.com
+
+DbVar5 History
+Group HistoryNerds
+Title Historical Archives Online
+URL https://www.historyarchives.com
+Domain historyarchives.com
+
+Group General
+DbVar6 Computer Science
+AnonymousURL -RE +http://www.csinnovations.com/rss/[a-z]+.xml
+Title CS Innovations Database
+URL https://www.csinnovations.com
+Domain csinnovations.com
+AnonymousURL -*
+
+DbVar7 Literature
+AddUserHeader X-User
+Title World Literature Repository
+URL https://www.literaturerepo.com
+Domain literaturerepo.com
+AddUserHeader
+
+DbVar8 Psychology
+Title Cognitive Science Resources
+URL https://www.cognitivescienceresources.com
+Domain cognitivescienceresources.com
+
+DbVar9 Environmental Science
+Title EcoData Network
+URL https://www.ecodatanet.com
+Domain ecodatanet.com
+
+DbVar
