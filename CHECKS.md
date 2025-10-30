@@ -60,6 +60,17 @@ The `Title` directive are only allowed to follow these directives:
 * `ProxyHostnameEdit`
 * `Referer`
 * `Cookie`
+* `DbVar`
+* `DbVar0`
+* `DbVar1`
+* `DbVar2`
+* `DbVar3`
+* `DbVar4`
+* `DbVar5`
+* `DbVar6`
+* `DbVar7`
+* `DbVar8`
+* `DbVar9`
 * `OptionEbraryUnencodedTokens`
 * `Option DomainCookieOnly`
 * `Option NoCookie`
@@ -117,6 +128,17 @@ the `AnonymousURL` directive is only allowed to follow these directives:
 * `Group`
 * `HTTPMethod`
 * `Cookie`
+* `DbVar`
+* `DbVar0`
+* `DbVar1`
+* `DbVar2`
+* `DbVar3`
+* `DbVar4`
+* `DbVar5`
+* `DbVar6`
+* `DbVar7`
+* `DbVar8`
+* `DbVar9`
 * `AddUserHeader`
 * `AnonymousURL`
 * `ProxyHostnameEdit`
@@ -148,6 +170,17 @@ directives are only allowed to follow other 'opener' directives and:
 
 * `Group`
 * `HTTPMethod`
+* `DbVar`
+* `DbVar0`
+* `DbVar1`
+* `DbVar2`
+* `DbVar3`
+* `DbVar4`
+* `DbVar5`
+* `DbVar6`
+* `DbVar7`
+* `DbVar8`
+* `DbVar9`
 * `AddUserHeader`
 * `AnonymousURL`
 
@@ -167,6 +200,7 @@ directives are only allowed to follow other 'opener' directives and:
 
 directives are only allowed to follow other 'closer' directives and:
 
+* `DbVar`
 * `URL`
 * `Host`
 * `HostJavaScript`
@@ -188,6 +222,17 @@ The `ProxyHostnameEdit` directive is only allowed to follow the following direct
 * `Group`
 * `HTTPMethod`
 * `Cookie`
+* `DbVar`
+* `DbVar0`
+* `DbVar1`
+* `DbVar2`
+* `DbVar3`
+* `DbVar4`
+* `DbVar5`
+* `DbVar6`
+* `DbVar7`
+* `DbVar8`
+* `DbVar9`
 * `AddUserHeader`
 * `AnonymousURL`
 * `ProxyHostnameEdit`
@@ -262,6 +307,17 @@ the `AddUserHeader` directive is only allowed to follow these directives:
 * `Group`
 * `HTTPMethod`
 * `Cookie`
+* `DbVar`
+* `DbVar0`
+* `DbVar1`
+* `DbVar2`
+* `DbVar3`
+* `DbVar4`
+* `DbVar5`
+* `DbVar6`
+* `DbVar7`
+* `DbVar8`
+* `DbVar9`
 * `AddUserHeader`
 * `AnonymousURL`
 * `ProxyHostnameEdit`

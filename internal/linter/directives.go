@@ -32,6 +32,16 @@ const (
 	Cookie
 	CookieFilter
 	DbVar
+	DbVar0
+	DbVar1
+	DbVar2
+	DbVar3
+	DbVar4
+	DbVar5
+	DbVar6
+	DbVar7
+	DbVar8
+	DbVar9
 	DenyIfRequestHeader
 	Description
 	DNS
@@ -199,6 +209,16 @@ var LabelToDirective = map[string]Directive{ //nolint:gochecknoglobals
 	"CookieFilter":                    CookieFilter,
 	"D":                               Domain,
 	"DbVar":                           DbVar,
+	"DbVar0":                          DbVar0,
+	"DbVar1":                          DbVar1,
+	"DbVar2":                          DbVar2,
+	"DbVar3":                          DbVar3,
+	"DbVar4":                          DbVar4,
+	"DbVar5":                          DbVar5,
+	"DbVar6":                          DbVar6,
+	"DbVar7":                          DbVar7,
+	"DbVar8":                          DbVar8,
+	"DbVar9":                          DbVar9,
 	"DenyIfRequestHeader":             DenyIfRequestHeader,
 	"Description":                     Description,
 	"DJ":                              DomainJavaScript,
