@@ -12,7 +12,7 @@ import (
 	"github.com/fatih/color"
 )
 
-var update = flag.Bool("update", false, "Update golden testdata fixtures")
+var update = flag.Bool("update", false, "Update golden testdata fixtures") //nolint:gochecknoglobals
 
 func NewLinter() *linter.Linter {
 	l := &linter.Linter{Output: io.Discard, FollowIncludeFile: true}
@@ -73,9 +73,7 @@ func runDataFileTest(t *testing.T, o testOpts) {
 		if o.Fail {
 			golden := f + ".golden"
 			if *update {
-				// If we're in update mode, strip out the terminal color
-				// sequences before writing the golden file.
-				err := os.WriteFile(golden, buf.Bytes(), 0644)
+				err := os.WriteFile(golden, buf.Bytes(), 0644) //nolint:gosec
 				if err != nil {
 					panic(err)
 				}
@@ -94,10 +92,10 @@ func runDataFileTest(t *testing.T, o testOpts) {
 
 			// Verify that the output matches the golden fixture.
 			if !bytes.Equal(buf.Bytes(), expected) {
-				t.Errorf("Results did not match golden fixture:\nwant:\n%s\ngot:\n%s", string(expected), string(buf.Bytes()))
+				t.Errorf("Results did not match golden fixture:\nwant:\n%s\ngot:\n%s", string(expected), buf.String())
 			}
 		} else if err != nil || warningCount != 0 {
-			t.Errorf("Unexpected error on valid file: %s\n%s", f, string(buf.Bytes()))
+			t.Errorf("Unexpected error on valid file: %s\n%s", f, buf.String())
 		}
 	}
 }
