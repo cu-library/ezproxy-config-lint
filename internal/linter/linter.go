@@ -34,6 +34,7 @@ type State struct {
 	OCLCTitle                 string
 	Label                     string    `json:"PreviousLabel"`
 	Current                   Directive `json:"-"`
+	IsSeparator               bool
 	Previous                  Directive `json:"PreviousDirective"`
 	PreviousMultilineSegments string
 	Source                    string
@@ -237,7 +238,7 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 	// Is the line empty, or an empty comment?
 	// If so, we're at the end of the stanza.
 	if line == "" || line == "#" {
-		if l.State.Title != "" && l.State.URL == "" {
+		if l.State.Title != "" && l.State.URL == "" && !l.State.IsSeparator {
 			m = append(m, fmt.Sprintf("Stanza %q has Title but no URL (L4003)", l.State.Title))
 		}
 		if l.State.AddUserHeaderNeedsClosing {
@@ -296,6 +297,10 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 	}
 
 	// Line isn't a comment or empty.
+
+	// Reset the IsSeparator flag to false.
+	l.State.IsSeparator = false
+
 	// Split the line by spaces to find the label.
 	split := strings.Split(line, " ")
 	label := split[0]
@@ -348,6 +353,8 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 		m = append(m, l.ProcessAnonymousURL(line)...)
 	case Title:
 		m = append(m, l.ProcessTitle(line, at)...)
+	case Description:
+		m = append(m, l.ProcessDescription(line, at)...)
 	case URL:
 		m = append(m, l.ProcessURL(line, at)...)
 	case Host, HostJavaScript:
@@ -624,6 +631,25 @@ func (l *Linter) ProcessTitle(line, at string) (m []string) {
 	return m
 }
 
+// ProcessDescription processes the line containing a description directive.
+// OCLC documention:
+// https://help.oclc.org/Library_Management/EZproxy/Configure_resources/Description
+func (l *Linter) ProcessDescription(line, at string) (m []string) {
+	allowedPreviousDirectives := []Directive{
+		Title,
+		Description,
+	}
+	if !slices.Contains(allowedPreviousDirectives, l.State.Previous) {
+		m = append(m, fmt.Sprintf("\"Description\" directive is out of order, previous directive: %q (L1013)", l.State.Previous))
+	}
+
+	// From the documentation: "EZproxy supports a special database stanza comprised of only a
+	// single Title directive and one or more Description directives."
+	// That special stanza designation is stored in l.State.IsSeparator.
+	l.State.IsSeparator = true
+	return m
+}
+
 // ProcessHostandHostJavaScript processes the line containing a Host or HostJavaScript directive.
 // OCLC documentation:
 // https://help.oclc.org/Library_Management/EZproxy/Configure_resources/Host_H
@@ -686,6 +712,7 @@ func (l *Linter) ProcessDomainAndDomainJavaScript(line string) (m []string) {
 func (l *Linter) ProcessURL(line, at string) (m []string) {
 	allowedPreviousDirectives := []Directive{
 		AllowVars,
+		Description,
 		EBLSecret,
 		EbrarySite,
 		EncryptVar,

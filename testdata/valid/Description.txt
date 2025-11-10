@@ -1,0 +1,13 @@
+Title Some Database
+Description Some Database provided by Some Vendor.
+URL http://www.somedb.com
+Domain somedb.com
+
+Title Separator
+Description <hr>
+
+Title Other Database
+Description Other Database
+Description provided by Other Vendor.
+URL http://www.otherdb.com
+Domain otherdb.com
