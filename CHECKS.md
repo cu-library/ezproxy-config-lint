@@ -15,6 +15,7 @@ Explanations of all checks in `ezproxy-config-lint`.
     - [L1010 - `URL` directive is before `Title` directive](#l1010---url-directive-is-before-title-directive)
     - [L1011 - `AddUserHeader` directive with no qualifiers is out of order](#l1011---adduserheader-directive-with-no-qualifiers-is-out-of-order)
     - [L1012 - `AddUserHeader` directive is out of order](#l1012---adduserheader-directive-is-out-of-order)
+    - [L1013 - `Description` directive is out of order](#l1013---description-directive-is-out-of-order)
   - [L2 - Duplication Issues](#l2---duplication-issues)
     - [L2001 - Duplicate `Title` directive in stanza](#l2001---duplicate-title-directive-in-stanza)
     - [L2002 - Origin already seen in another stanza](#l2002---origin-already-seen-in-another-stanza)
@@ -330,6 +331,15 @@ the `AddUserHeader` directive is only allowed to follow these directives:
 * `Option ProxyFTP`
 * `Option UTF16`
 * `Option X-Forwarded-For`
+
+---------
+
+### L1013 - `Description` directive is out of order
+
+The `Description` directive are only allowed to follow these directives:
+
+* `Title`
+* `Description`
 
 ## L2 - Duplication Issues
 
