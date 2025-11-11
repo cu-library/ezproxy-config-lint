@@ -88,7 +88,7 @@ HJ https://agupubs.onlinelibrary.wiley.com
 HJ https://aiche.onlinelibrary.wiley.com
 HJ https://alz-journals.onlinelibrary.wiley.com
 HJ https://ami-journals.onlinelibrary.wiley.com
-HJ https://analyticalsciencejournals.onlinelibrary.wiley.com 
+HJ https://analyticalsciencejournals.onlinelibrary.wiley.com
 HJ https://anatomypubs.onlinelibrary.wiley.com
 HJ https://anthrosource.onlinelibrary.wiley.com
 HJ https://anzjsurg.onlinelibrary.wiley.com

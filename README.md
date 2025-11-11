@@ -9,7 +9,7 @@
 - Ensuring that stanzas have an `AnonymousURL -*` directive after `AnonymousURL` directives are used.
 - Ensuring that stanzas do not have two or more `URL` or `Title` directives.
 
-The `-annotate` flag makes the tool print the whole file, not just lines which raise warnings. 
+The `-annotate` flag makes the tool print the whole file, not just lines which raise warnings.
 The tool uses non-zero exit codes to indicate problems: `1` means at least one issue was found, `2` means the linter experienced an error and could not continue.
 
 Checks performed by this linter are explained in more detail in the [CHECKS](CHECKS.md) documentation.
@@ -21,7 +21,7 @@ This software is still in early development. If you find bugs or want to request
 ## Getting Started
 
 1. Download the latest release from https://github.com/cu-library/ezproxy-config-lint/releases. The tool is compiled for Windows, Linux, and Darwin (macOS).
-    - If you're on Windows, you probably want this release: https://github.com/cu-library/ezproxy-config-lint/releases/latest/download/ezproxy-config-lint_Windows_x86_64.zip 
+    - If you're on Windows, you probably want this release: https://github.com/cu-library/ezproxy-config-lint/releases/latest/download/ezproxy-config-lint_Windows_x86_64.zip
     - If you're on Linux, you probably want this release: https://github.com/cu-library/ezproxy-config-lint/releases/latest/download/ezproxy-config-lint_Linux_x86_64.tar.gz
     - If you're on macOS, you probably want this release: https://github.com/cu-library/ezproxy-config-lint/releases/latest/download/ezproxy-config-lint_Darwin_x86_64.tar.gz
 2. Unzip or untar the archive.

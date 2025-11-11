@@ -52,7 +52,7 @@ Explanations of all checks in `ezproxy-config-lint`.
 
 ### L1001 - `Title` directive is out of order
 
-The `Title` directive are only allowed to follow these directives:
+The `Title` directive is only allowed to follow these directives:
 
 * `Group`
 * `HTTPMethod`
@@ -87,7 +87,7 @@ The `Title` directive are only allowed to follow these directives:
 
 ### L1002 - `URL` directive is out of order
 
-The `URL` directive are only allowed to follow these directives:
+The `URL` directive is only allowed to follow these directives:
 
 * `AllowVars`
 * `EBLSecret`
@@ -123,7 +123,8 @@ The `AnonymousURL -*` directive is only allowed to follow these directives:
 
 ### L1004 - `AnonymousURL` directive is out of order
 
-Except for the ending `AnonymousURL -*` usage (see [L1003](#l1003---anonymousurl---directive-is-out-of-order)),
+Except for `AnonymousURL -*`, used to 'close' previously defined `AnonymousURL`
+directives (see [L1003](#l1003---anonymousurl---directive-is-out-of-order)),
 the `AnonymousURL` directive is only allowed to follow these directives:
 
 * `Group`
@@ -185,7 +186,8 @@ directives are only allowed to follow other 'opener' directives and:
 * `AddUserHeader`
 * `AnonymousURL`
 
-'Opener' directives are Option directives which have a corresponding 'closer' Option directive. See [L4002](#l1004---anonymousurl-directive-is-out-of-order) for more information.
+'Opener' directives are `Option` directives which have a corresponding 'closer' `Option` directive.
+See [L4002](#l1004---anonymousurl-directive-is-out-of-order) for more information.
 
 ---------
 
@@ -212,7 +214,8 @@ directives are only allowed to follow other 'closer' directives and:
 * `AnonymousURL`
 * `NeverProxy`
 
-'Closer' directives are Option directives which have a corresponding 'opener' Option directive. See [L4002](#l1004---anonymousurl-directive-is-out-of-order)) for more information.
+'Closer' directives are `Option` directives which have a corresponding 'opener' `Option` directive.
+See [L4002](#l1004---anonymousurl-directive-is-out-of-order)) for more information.
 
 ---------
 
@@ -273,7 +276,7 @@ but a.short.domain.ca is four components deep.
 
 ### L1010 - `URL` directive is before `Title` directive
 
-The `URL` directive should always come after the `Title` is a given stanza.
+The `URL` directive should always come after the `Title` in a given stanza.
 
 ---------
 
@@ -302,7 +305,8 @@ The `AddUserHeader` directive with no qualifiers is only allowed to follow these
 
 ### L1012 - `AddUserHeader` directive is out of order
 
-Except for the ending `AddUserHeader` usage (see [L1011](#l1011---adduserheader-directive-is-out-of-order)),
+Except for `AddUserHeader` with no qualifiers, used to 'close' previously defined `AddUserHeader`
+directives (see [L1011](#l1011---adduserheader-directive-is-out-of-order)),
 the `AddUserHeader` directive is only allowed to follow these directives:
 
 * `Group`
@@ -336,7 +340,7 @@ the `AddUserHeader` directive is only allowed to follow these directives:
 
 ### L1013 - `Description` directive is out of order
 
-The `Description` directive are only allowed to follow these directives:
+The `Description` directive is only allowed to follow these directives:
 
 * `Title`
 * `Description`
@@ -345,7 +349,7 @@ The `Description` directive are only allowed to follow these directives:
 
 ### L2001 - Duplicate `Title` directive in stanza
 
-More than one `Title` directive present in a stanza.
+Stanzas should not contain more than one `Title` directive.
 
 ---------
 
@@ -354,20 +358,21 @@ More than one `Title` directive present in a stanza.
 EZproxy [only reads origins and does not read paths](https://help.oclc.org/Library_Management/EZproxy/Configure_resources/Groups).
 The origin is the combination of the scheme (http or https), the host (google.com, help.oclc.org), and the port.
 EZproxy does not care about paths (/astronomy, /login).
-The linter will report if you've already used an origin in another stanza, so that you can ensure that limiting access via Groups works as you expect.
+The linter will report if you've already used an origin in another stanza,
+so that you can ensure that limiting access via Groups works as you expect.
 
 ---------
 
 ### L2003 - Duplicate `URL` directive in stanza
 
-More than one `URL` directive present in a stanza.
+Stanzas should not contain more than one `URL` directive.
 
 ---------
 
 ### L2004 - `Title` value already seen
 
 The linter tracks stanza `Title` values and reports when a value has been seen more than
-once.
+once. Each stanza should have a unique `Title`.
 
 ---------
 
@@ -403,14 +408,14 @@ The first qualifier to `ProxyHostnameEdit`, *find*, is a regular expression and 
 
 This check is enabled with the `-phe=true` option.
 
-To make redirects from HTTP to HTTPS links more reliable, this check ensures that the *find* and *replace* qualifiers correspond with each other: *replace* should just be *find*, but with the trailing `$` removed and the periods replaced with hypens. For example, `home.heinonline.org$` corresponds with `home-heinonline-org`.
+To make redirects from HTTP to HTTPS links more reliable, this check ensures that the *find* and *replace* qualifiers correspond with each other: *replace* should just be *find*, but with the trailing `$` removed and the periods replaced with hyphens. For example, `home.heinonline.org$` corresponds with `home-heinonline-org`.
 
 ---------
 
 ### L3004 -  `Domain` and `DomainJavaScript` directives should only specify domains
 
 The `Domain` and `DomainJavaScript` directives should only specify domains.
-No URLs or path components should be used.
+No scheme ("http://", "https://") or path ("/login", "/search") components should be used.
 
 ---------
 
@@ -436,25 +441,32 @@ The URL should use the `https` scheme/protocol.
 
 ### L3008 - `Option` directive not in the form `Option OPTIONNAME`
 
-The `Option` directive needs a second part. You can see the list of options in the [OCLC documentation](https://help.oclc.org/Library_Management/EZproxy/Configure_resources).
+The `Option` directive needs a second part.
+You can see the list of options in the [OCLC documentation](https://help.oclc.org/Library_Management/EZproxy/Configure_resources).
 
 ---------
 
 ### L3009 - `URL` directive is not in the right format
 
-The `URL` directive must be in the [URL (version 1)](https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_1), [URL (version 2)](https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_2), or [URL (version 3)](https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_3) format. Ensure line is not malformed.
+The `URL` directive must be in the [URL (version 1)](https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_1),
+[URL (version 2)](https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_2),
+or [URL (version 3)](https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_3) format.
+Ensure line is not malformed.
 
 ## L4 - Missing Directive Issues
 
 ### L4001 - Missing `AnonymousURL -*` at end of stanza
 
-Stanzas which use a AnonymousURL directive should include a `AnonymousURL -*` line at the end of the stanza so that other stanzas in the config file are not impacted.
+Stanzas which use a AnonymousURL directive should include a `AnonymousURL -*` line
+at the end of the stanza so that other stanzas in the config file are not impacted.
 
 ---------
 
 ### L4002 - Missing Option at end of stanza
 
-Stanzas which use options like `Option X-Forwarded-For` or `Option DomainCookieOnly` need to have a corresponding option like `Option NoX-Forwarded-For` or `Option Cookie` at the end of the stanza to ensure these options do not impact other stanzas.
+Stanzas which use options like `Option X-Forwarded-For` or `Option DomainCookieOnly`
+need to have a corresponding option like `Option NoX-Forwarded-For` or `Option Cookie`
+at the end of the stanza to ensure these options do not impact other stanzas.
 
 Here's the table of 'opener' and 'closer' Option directives:
 
@@ -474,7 +486,7 @@ Here's the table of 'opener' and 'closer' Option directives:
 
 ### L4003 - Stanza has `Title` but no `URL`
 
-Stanzas should have both a Title and a URL directive.
+Stanzas should have both a `Title` and a `URL` directive.
 
 ---------
 
@@ -492,7 +504,8 @@ From the [OCLC documentation](https://help.oclc.org/Library_Management/EZproxy/C
 
 "Omit both -base64 and headername to direct EZproxy to exclude this header for the databases that follow."
 
-Stanzas which use a AddUserHeader directive should include a `AddUserHeader` directive with no other qualifiers at the end of the stanza so that other stanzas in the config file are not impacted.
+Stanzas which use a `AddUserHeader` directive should include a `AddUserHeader` directive with no other
+qualifiers at the end of the stanza so that other stanzas in the config file are not impacted.
 
 ## L5 - Styling Issues
 
