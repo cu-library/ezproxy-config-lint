@@ -1,3 +1,4 @@
 testdata/invalid/misplaced_OptionCookie.txt:6: Option Cookie ← "Option Cookie" directive is out of order, previous directive: "Title" (L1006)
 testdata/invalid/misplaced_OptionCookie.txt:7: URL https://urltwo.com ← "URL" directive is out of order, previous directive: "Option Cookie" (L1002)
 testdata/invalid/misplaced_OptionCookie.txt:13: Option Cookie ← "Find" directive must be immediately proceeded with a "Replace" directive (L4004), "Option Cookie" directive is out of order, previous directive: "Find" (L1006)
+testdata/invalid/misplaced_OptionCookie.txt:18: Title Title Four ← "Title" directive is out of order, previous directive: "Option Cookie" (L1001)

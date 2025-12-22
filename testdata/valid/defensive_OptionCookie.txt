@@ -1,0 +1,12 @@
+# Issue 73 - Leading defensive OptionCookie
+HTTPMethod DELETE
+Option Cookie
+ProxyHostnameEdit healthlibrary.epnet.com$ healthlibrary-epnet-com
+AddUserHeader -base64 X-EBSCO-PROXY-Username
+Option MetaEZproxyRewriting
+Option DomainCookieOnly
+Title Title One
+URL https://urlone.com
+AddUserHeader
+Option Cookie
+Option NoMetaEZproxyRewriting

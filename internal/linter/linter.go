@@ -336,6 +336,23 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 		m = append(m, "\"Find\" directive must be immediately proceeded with a \"Replace\" directive (L4004)")
 	}
 
+	// Special case for defensive OptionCookie.
+	// Return early if we see an OptionCookie prior to other opening directives
+	// that require an OptionCookie closer.
+	if directive == OptionCookie && l.State.Title == "" {
+		returnEarly := true
+
+		for _, v := range l.State.OpenOptions {
+			if v == OptionCookie {
+				returnEarly = false
+			}
+		}
+		if returnEarly {
+			l.State.Previous = OptionCookie
+			return
+		}
+	}
+
 	// Process Option Pair directives.
 	if slices.Contains(openers, directive) {
 		m = append(m, l.ProcessOptionOpener(line)...)
@@ -385,6 +402,7 @@ func (l *Linter) ProcessOptionOpener(line string) (m []string) {
 		HTTPMethod,
 		AddUserHeader,
 		AnonymousURL,
+		OptionCookie,
 	}
 	allowedPreviousDirectives = append(allowedPreviousDirectives, OpenerOptions()...)
 	if !slices.Contains(allowedPreviousDirectives, l.State.Previous) {
@@ -441,6 +459,7 @@ func (l *Linter) ProcessProxyHostnameEdit(line string) (m []string) {
 		DbVar9,
 		AddUserHeader,
 		AnonymousURL,
+		OptionCookie,
 		ProxyHostnameEdit,
 	}
 	allowedPreviousDirectives = append(allowedPreviousDirectives, OpenerOptions()...)
@@ -517,6 +536,7 @@ func (l *Linter) ProcessAddUserHeader(line string) (m []string) {
 			DbVar9,
 			AddUserHeader,
 			AnonymousURL,
+			OptionCookie,
 			ProxyHostnameEdit,
 		}
 		allowedPreviousDirectives = append(allowedPreviousDirectives, OpenerOptions()...)
