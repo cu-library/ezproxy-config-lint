@@ -342,9 +342,13 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 	if directive == OptionCookie && l.State.Title == "" {
 		returnEarly := true
 
+		// This is not very efficient, but hopefully this is not a hot path.
+		opprs := OptionPairs()
+
 		for _, v := range l.State.OpenOptions {
-			if v == OptionCookie {
+			if opprs[v] == OptionCookie {
 				returnEarly = false
+				break
 			}
 		}
 		if returnEarly {
@@ -623,6 +627,7 @@ func (l *Linter) ProcessTitle(line, at string) (m []string) {
 		DbVar8,
 		DbVar9,
 		OptionEbraryUnencodedTokens,
+		OptionCookie,
 	}
 	allowedPreviousDirectives = append(allowedPreviousDirectives, OpenerOptions()...)
 	if !slices.Contains(allowedPreviousDirectives, l.State.Previous) {

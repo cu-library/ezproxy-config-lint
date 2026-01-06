@@ -10,3 +10,7 @@ URL https://urlone.com
 AddUserHeader
 Option Cookie
 Option NoMetaEZproxyRewriting
+
+Option Cookie
+Title Title Two
+URL https://urltwo.com
