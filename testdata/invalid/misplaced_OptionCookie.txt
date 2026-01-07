@@ -12,3 +12,9 @@ URL https://urlthree.com
 Find "http:\/\/somehost.somedb.com\/
 Option Cookie
 Replace "http:\/\/^Psomehost.somedb.com^\/
+
+Option DomainCookieOnly
+Option Cookie
+Title Title Four
+URL https://urlfour.com
+Option Cookie
