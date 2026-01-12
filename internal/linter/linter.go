@@ -111,12 +111,8 @@ func (l *Linter) ProcessFile(filePath string) (warningCount int, err error) {
 		l.IncludeFileDirectory = filepath.Dir(filePath)
 	}
 
-	// Preallocate a buffer for the scanner.
-	buf := make([]byte, DefaultBufferSize)
 	// Make a scanner to go through the file line by line.
-	scanner := bufio.NewScanner(f)
-	// Use the buffer to store each line. The buffer can grow if needed.
-	scanner.Buffer(buf, MaxBufferSize)
+	scanner := newScanner(f)
 
 	// Store the line number for output.
 	lineNum := 0
@@ -832,6 +828,16 @@ func TrimDirective(line string, directiveToTrim Directive) string {
 	return strings.TrimSpace(line)
 }
 
+func newScanner(r io.Reader) *bufio.Scanner {
+	// Preallocate a buffer for the scanner.
+	buf := make([]byte, DefaultBufferSize)
+	// Make a scanner to go through the reader r line by line.
+	scanner := bufio.NewScanner(r)
+	// Use the buffer to store each line. The buffer can grow if needed.
+	scanner.Buffer(buf, MaxBufferSize)
+	return scanner
+}
+
 func processSourceLine(sourceLine string) (string, string, error) {
 	oclcTitle := ""
 	splitSourceLine := strings.Split(sourceLine, " ")
@@ -870,9 +876,7 @@ func processSourceLine(sourceLine string) (string, string, error) {
 	f = func(n *html.Node) {
 		if n.Type == html.ElementNode && n.Data == "pre" {
 			if n.FirstChild != nil && n.FirstChild.Type == html.TextNode {
-				buf := make([]byte, DefaultBufferSize)
-				scanner := bufio.NewScanner(strings.NewReader(n.FirstChild.Data))
-				scanner.Buffer(buf, MaxBufferSize)
+				scanner := newScanner(strings.NewReader(n.FirstChild.Data))
 				for scanner.Scan() {
 					line := scanner.Text()
 					if strings.HasPrefix(line, "Title ") || strings.HasPrefix(line, "T ") {
