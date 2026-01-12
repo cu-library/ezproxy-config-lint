@@ -148,6 +148,8 @@ func (l *Linter) ProcessFile(filePath string) (warningCount int, err error) {
 		if l.Verbose {
 			s, err := json.Marshal(l.State)
 			if err != nil {
+				// If we can't marshal the linter state, something went horribly wrong.
+				// Bail out early.
 				return warningCount, err
 			}
 			fmt.Fprintf(l.Output, "%v\n", color.CyanString(string(s)))
