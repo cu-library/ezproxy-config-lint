@@ -25,6 +25,13 @@ import (
 	"golang.org/x/net/html"
 )
 
+const (
+	DefaultBufferSize = 1 * 1024 * 1024        // 1 MiB, the default size when creating a buffer for a scanner.
+	MaxBufferSize     = 5 * 1024 * 1024        // 5 MiB, the maximum size the scanner buffers can grow to.
+	OCLCHTTPTimeout   = 10 * time.Second       // The timeout to set on contexts when querying the OCLC website.
+	OCLCRequestDelay  = 300 * time.Millisecond // The time to wait after querying the OCLC website.
+)
+
 type State struct {
 	AddUserHeaderNeedsClosing bool
 	AnonymousURLNeedsClosing  bool
@@ -104,13 +111,12 @@ func (l *Linter) ProcessFile(filePath string) (warningCount int, err error) {
 		l.IncludeFileDirectory = filepath.Dir(filePath)
 	}
 
-	// Make a buffer of about 1 MB in size.
-	buf := make([]byte, 1048576)
+	// Preallocate a buffer for the scanner.
+	buf := make([]byte, DefaultBufferSize)
 	// Make a scanner to go through the file line by line.
 	scanner := bufio.NewScanner(f)
-	// Use the buffer to store each line, but grow the buffer to about 5MB if required.
-	// 5MB line is a huge line.
-	scanner.Buffer(buf, 5242880)
+	// Use the buffer to store each line. The buffer can grow if needed.
+	scanner.Buffer(buf, MaxBufferSize)
 
 	// Store the line number for output.
 	lineNum := 0
@@ -844,7 +850,7 @@ func processSourceLine(sourceLine string) (string, string, error) {
 		return "", "", errors.New("source line isn't pointing to OCLC")
 	}
 	// Make a GET request, waiting no more than 10 second for the results.
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), OCLCHTTPTimeout)
 	defer cancel()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, parsedSourceURL.String(), nil)
 	if err != nil {
@@ -855,7 +861,7 @@ func processSourceLine(sourceLine string) (string, string, error) {
 		return "", "", err
 	}
 	defer resp.Body.Close()
-	time.Sleep(300 * time.Millisecond)
+	time.Sleep(OCLCRequestDelay)
 	doc, err := html.Parse(resp.Body)
 	if err != nil {
 		return "", "", err
@@ -864,9 +870,9 @@ func processSourceLine(sourceLine string) (string, string, error) {
 	f = func(n *html.Node) {
 		if n.Type == html.ElementNode && n.Data == "pre" {
 			if n.FirstChild != nil && n.FirstChild.Type == html.TextNode {
-				buf := make([]byte, 1048576)
+				buf := make([]byte, DefaultBufferSize)
 				scanner := bufio.NewScanner(strings.NewReader(n.FirstChild.Data))
-				scanner.Buffer(buf, 5242880)
+				scanner.Buffer(buf, MaxBufferSize)
 				for scanner.Scan() {
 					line := scanner.Text()
 					if strings.HasPrefix(line, "Title ") || strings.HasPrefix(line, "T ") {
