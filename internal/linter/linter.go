@@ -792,18 +792,12 @@ func (l *Linter) ProcessURL(line, at string) (m []string) {
 	return m
 }
 
-func FindURLFromLine(line string) (url string) {
-	urlV1Match := URLV1Regex.FindStringSubmatch(line)
-	if urlV1Match != nil {
-		return urlV1Match[len(urlV1Match)-1]
-	}
-	urlV2Match := URLV2Regex.FindStringSubmatch(line)
-	if urlV2Match != nil {
-		return urlV2Match[len(urlV2Match)-1]
-	}
-	urlV3Match := URLV3Regex.FindStringSubmatch(line)
-	if urlV3Match != nil {
-		return urlV3Match[len(urlV3Match)-1]
+func FindURLFromLine(line string) string {
+	regexes := []*regexp.Regexp{URLV1Regex, URLV2Regex, URLV3Regex}
+	for _, re := range regexes {
+		if match := re.FindStringSubmatch(line); match != nil {
+			return match[len(match)-1]
+		}
 	}
 	return ""
 }
