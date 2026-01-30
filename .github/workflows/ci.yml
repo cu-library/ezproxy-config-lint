@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    name: Build, Test, and Lint (Go ${{ matrix.go }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go: ['stable', 'oldstable']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ matrix.go }}
+          cache: true
+
+      - name: Verify modules
+        run: |
+          go mod tidy
+          git diff --exit-code go.mod go.sum
+
+      - name: Build
+        run: go build ./...
+
+      - name: Unit tests
+        run: go test -v ./...
+
+      - name: Check formatting (go fmt)
+        run: |
+          go fmt ./...
+          git diff --exit-code
+
+      - name: Static analysis (go vet)
+        run: go vet ./...
+
+      - name: Install staticcheck
+        run: go install honnef.co/go/tools/cmd/staticcheck@latest
+
+      - name: Static analysis (staticcheck)
+        run: $HOME/go/bin/staticcheck ./...
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+          args: --timeout=5m
