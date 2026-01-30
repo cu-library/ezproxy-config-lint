@@ -13,10 +13,12 @@ jobs:
   ci:
     name: Build, Test, and Lint (Go ${{ matrix.go }})
     runs-on: ubuntu-latest
+
     strategy:
       fail-fast: false
       matrix:
         go: ['stable', 'oldstable']
+
     steps:
       - name: Checkout
         uses: actions/checkout@v6
