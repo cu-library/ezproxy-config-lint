@@ -1,5 +1,7 @@
 # ezproxy-config-lint
 
+[![Build Status](https://github.com/cu-library/ezproxy-config-lint/actions/workflows/ci.yml/badge.svg)](https://github.com/cu-library/ezproxy-config-lint/actions/workflows/ci.yml)
+
 ## Description
 
 `ezproxy-config-lint` is a linter for EZproxy config files. It checks config files for common issues like:
