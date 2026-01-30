@@ -27,7 +27,7 @@ This software is still in early development. If you find bugs or want to request
 2. Unzip or untar the archive.
     - On Linux: Navigate to your download directory, then run `tar xzvf ezproxy-config-lint_Linux_x86_64.tar.gz`
     - On Windows: Right-click on the .zip file in your download directory, and select "Extract All..."
-3. On the command line, nagivate to where the `ezproxy-config-lint` tool was extracted.
+3. On the command line, navigate to where the `ezproxy-config-lint` tool was extracted.
     - On Windows: If you've installed [Windows Terminal](https://aka.ms/terminal), you can right-click on the new folder and select "Open in Terminal".
 4. Run the tool, passing the config file you want to lint as a argument.
 
