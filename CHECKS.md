@@ -480,7 +480,7 @@ Here's the table of 'opener' and 'closer' Option directives:
 | Option MetaEZproxyRewriting | Option NoMetaEZproxyRewriting |
 | Option ProxyFTP | Option NoProxyFTP |
 | Option UTF16 | Option NoUTF16 |
-| Option X-Forwarded-For | OptionNoXForwardedFor |
+| Option X-Forwarded-For | Option NoX-Forwarded-For |
 
 ---------
 
