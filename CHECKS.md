@@ -91,7 +91,7 @@ The `URL` directive is only allowed to follow these directives:
 
 * `AllowVars`
 * `EBLSecret`
-* `EbrarySit`
+* `ebrarySite`
 * `EncryptVar`
 * `HTTPHeader`
 * `MimeFilter`
