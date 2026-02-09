@@ -337,7 +337,7 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 	// Without this, we would need to check that the previous
 	// directive was not Find on every directive other than Replace.
 	if l.State.Previous == Find && directive != Replace {
-		m = append(m, "\"Find\" directive must be immediately proceeded with a \"Replace\" directive (L4004)")
+		m = append(m, "\"Find\" directive must be immediately proceeded by a \"Replace\" directive (L4004)")
 	}
 
 	// Special case for defensive OptionCookie.

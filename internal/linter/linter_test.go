@@ -107,7 +107,7 @@ func TestFindReplacePair(t *testing.T) {
 	linter := Linter{State: State{
 		Previous: Find,
 	}}
-	expected := []string{"\"Find\" directive must be immediately proceeded with a \"Replace\" directive (L4004)"}
+	expected := []string{"\"Find\" directive must be immediately proceeded by a \"Replace\" directive (L4004)"}
 	messages := linter.ProcessLineAt("NeverProxy google.com", "test:1")
 	if !reflect.DeepEqual(messages, expected) {
 		t.Fatalf("incorrect messages %q instead of %q", messages, expected)

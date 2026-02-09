@@ -36,7 +36,7 @@ Explanations of all checks in `ezproxy-config-lint`.
     - [L4001 - Missing `AnonymousURL -*` at end of stanza](#l4001---missing-anonymousurl---at-end-of-stanza)
     - [L4002 - Missing Option at end of stanza](#l4002---missing-option-at-end-of-stanza)
     - [L4003 - Stanza has `Title` but no `URL`](#l4003---stanza-has-title-but-no-url)
-    - [L4004 - `Find` directive must be immediately proceeded with a `Replace` directive](#l4004---find-directive-must-be-immediately-proceeded-with-a-replace-directive)
+    - [L4004 - `Find` directive must be immediately proceeded by a `Replace` directive](#l4004---find-directive-must-be-immediately-proceeded-by-a-replace-directive)
     - [L4005 - Missing `AddUserHeader` at end of stanza](#l4005---missing-adduserheader-at-end-of-stanza)
   - [L5 - Styling Issues](#l5---styling-issues)
     - [L5001 - Directive uses the wrong case.](#l5001---directive-uses-the-wrong-case)
@@ -490,7 +490,7 @@ Stanzas should have both a `Title` and a `URL` directive.
 
 ---------
 
-### L4004 - `Find` directive must be immediately proceeded with a `Replace` directive
+### L4004 - `Find` directive must be immediately proceeded by a `Replace` directive
 
 From the [OCLC documentation](https://help.oclc.org/Library_Management/EZproxy/Configure_resources/Find_Replace):
 
