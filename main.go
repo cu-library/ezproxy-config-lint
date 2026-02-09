@@ -11,7 +11,7 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/cu-library/ezproxy-config-lint/internal/linter"
+	"github.com/cu-library/ezproxy-config-lint/v4/internal/linter"
 )
 
 type ExitCode int

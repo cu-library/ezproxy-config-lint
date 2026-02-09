@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/cu-library/ezproxy-config-lint/internal/linter"
+	"github.com/cu-library/ezproxy-config-lint/v4/internal/linter"
 	"github.com/fatih/color"
 )
 
