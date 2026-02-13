@@ -185,6 +185,7 @@ directives are only allowed to follow other 'opener' directives and:
 * `DbVar9`
 * `AddUserHeader`
 * `AnonymousURL`
+* `ProxyHostnameEdit`
 
 'Opener' directives are `Option` directives which have a corresponding 'closer' `Option` directive.
 See [L4002](#l1004---anonymousurl-directive-is-out-of-order) for more information.

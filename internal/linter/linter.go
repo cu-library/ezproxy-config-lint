@@ -408,6 +408,7 @@ func (l *Linter) ProcessOptionOpener(line string) (m []string) {
 		DbVar8,
 		DbVar9,
 		HTTPMethod,
+		ProxyHostnameEdit,
 		AddUserHeader,
 		AnonymousURL,
 		OptionCookie,
