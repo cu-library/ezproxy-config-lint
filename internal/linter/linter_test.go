@@ -21,7 +21,7 @@ func TestLineEndingInSpace(t *testing.T) {
 
 func TestMissingURL(t *testing.T) {
 	linter := Linter{State: State{
-		Title: "A Title",
+		Title: "A Title", //nolint:goconst
 	}}
 	expected := []string{"Stanza \"A Title\" has Title but no URL (L4003)"}
 	messages := linter.ProcessLineAt("", "test:1")
@@ -147,7 +147,7 @@ func TestFindURLFromLine(t *testing.T) {
 		{"U -Redirect -Append -Encoded otherdb http://www.otherdb.com/search?q=", "http://www.otherdb.com/search?q="},
 		{"URL -Redirect -Append otherdb http://www.otherdb.com/search?q=", ""},
 		{"URL -Redirect -Encoded otherdb http://www.otherdb.com/search?q=", ""},
-		{"URL -Form=post somedb http://www.somedb.com/login.asp", "http://www.somedb.com/login.asp"},
+		{"URL -Form=post somedb http://www.somedb.com/login.asp", "http://www.somedb.com/login.asp"}, //nolint:goconst
 		{"U -Form=post somedb http://www.somedb.com/login.asp", "http://www.somedb.com/login.asp"},
 		{"URL -Form=post -RewriteHost somedb http://www.somedb.com/login.asp", "http://www.somedb.com/login.asp"},
 		{"U -Form=post -RewriteHost somedb http://www.somedb.com/login.asp", "http://www.somedb.com/login.asp"},
@@ -170,7 +170,7 @@ func TestUnclosedOptionDirectives(t *testing.T) {
 			Linter{
 				State: State{
 					Title:       "DomainCookieOnlyMissing",
-					URL:         "https://test.com",
+					URL:         "https://test.com", //nolint:goconst
 					OpenOptions: []Directive{OptionDomainCookieOnly},
 				},
 			},
