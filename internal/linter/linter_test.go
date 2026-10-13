@@ -56,7 +56,7 @@ func TestURLWithoutScheme(t *testing.T) {
 
 func TestMalformedHost(t *testing.T) {
 	linter := Linter{}
-	expected := []string{"Unable to parse URL, might be malformed: parse \"http://[]w]w[ef\": invalid port \"w[ef\" after host (L3005)"}
+	expected := []string{"Unable to parse URL, might be malformed: parse \"http://[]w]w[ef\": invalid IP-literal (L3005)"}
 	messages := linter.ProcessLineAt("HJ []w]w[ef", "test:1")
 	if !reflect.DeepEqual(messages, expected) {
 		t.Fatalf("incorrect messages %q instead of %q", messages, expected)
