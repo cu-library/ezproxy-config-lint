@@ -90,6 +90,7 @@ The `Title` directive is only allowed to follow these directives:
 The `URL` directive is only allowed to follow these directives:
 
 * `AllowVars`
+* `ByteServe`
 * `EBLSecret`
 * `ebrarySite`
 * `EncryptVar`

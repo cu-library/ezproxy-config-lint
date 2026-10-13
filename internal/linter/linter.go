@@ -742,6 +742,7 @@ func (l *Linter) ProcessDomainAndDomainJavaScript(line string) (m []string) {
 func (l *Linter) ProcessURL(line, at string) (m []string) {
 	allowedPreviousDirectives := []Directive{
 		AllowVars,
+		ByteServe,
 		Description,
 		EBLSecret,
 		EbrarySite,
