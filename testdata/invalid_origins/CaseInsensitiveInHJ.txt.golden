@@ -1,0 +1,1 @@
+testdata/invalid_origins/CaseInsensitiveInHJ.txt:4: HJ http://OTHER.example:8443/x ← Origin already seen at "testdata/invalid_origins/CaseInsensitiveInHJ.txt:3" (L2005)

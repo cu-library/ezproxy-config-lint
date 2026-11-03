@@ -700,7 +700,7 @@ func (l *Linter) ProcessHostAndHostJavaScript(line, at string) (m []string) {
 			return
 		}
 	}
-	origin := fmt.Sprintf("%v://%v", parsedURL.Scheme, parsedURL.Host)
+	origin := originFromURL(parsedURL)
 	// Check the origin against origins seen in other stanzas.
 	originSeenAt, originSeen := l.PreviousOrigins[origin]
 	if originSeen {
@@ -787,13 +787,33 @@ func (l *Linter) ProcessURL(line, at string) (m []string) {
 	// Instead, we add the URL's origin and the filename/line combination (the 'at')
 	// to the Linter's State so that we can add it to PreviousOrigins when we're done
 	// processing the stanza.
-	l.State.URLOrigin = fmt.Sprintf("%v://%v", parsedURL.Scheme, parsedURL.Host)
+	l.State.URLOrigin = originFromURL(parsedURL)
 	l.State.URLAt = at
 	originSeenAt, originSeen := l.PreviousOrigins[l.State.URLOrigin]
 	if originSeen {
 		m = append(m, fmt.Sprintf("Origin already seen at %q (L2002)", originSeenAt))
 	}
 	return m
+}
+
+// originFromURL returns the scheme://hostname:port used to compare starting point origins.
+// The host is lowercased so Example.COM and example.com are the same origin.
+func originFromURL(u *url.URL) string {
+	scheme := strings.ToLower(u.Scheme)
+	host := strings.ToLower(u.Host)
+
+	// When a URL has a port defined, it will be included in u.Host, so return early.
+	if u.Port() != "" {
+		return scheme + "://" + host
+	}
+
+	// Explicitly include default ports
+	port := "80"
+	if scheme == "https" {
+		port = "443"
+	}
+
+	return scheme + "://" + host + ":" + port
 }
 
 func FindURLFromLine(line string) string {
