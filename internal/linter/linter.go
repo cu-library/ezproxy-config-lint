@@ -30,6 +30,8 @@ const (
 	MaxBufferSize     = 5 * 1024 * 1024        // 5 MiB, the maximum size the scanner buffers can grow to.
 	OCLCHTTPTimeout   = 10 * time.Second       // The timeout to set on contexts when querying the OCLC website.
 	OCLCRequestDelay  = 300 * time.Millisecond // The time to wait after querying the OCLC website.
+
+	schemeHTTPS = "https"
 )
 
 type State struct {
@@ -702,7 +704,7 @@ func (l *Linter) ProcessHostAndHostJavaScript(line, at string) (m []string) {
 			return
 		}
 	}
-	origin := fmt.Sprintf("%v://%v", parsedURL.Scheme, parsedURL.Host)
+	origin := originFromURL(parsedURL)
 	// Check the origin against origins seen in other stanzas.
 	originSeenAt, originSeen := l.PreviousOrigins[origin]
 	if originSeen {
@@ -778,7 +780,7 @@ func (l *Linter) ProcessURL(line, at string) (m []string) {
 		m = append(m, "URL does not start with http or https (L3006)")
 		return
 	}
-	if l.HTTPS && parsedURL.Scheme != "https" {
+	if l.HTTPS && parsedURL.Scheme != schemeHTTPS {
 		m = append(m, "URL is not using HTTPS scheme (L3007)")
 	}
 	// According to the EZproxy docs at
@@ -789,13 +791,33 @@ func (l *Linter) ProcessURL(line, at string) (m []string) {
 	// Instead, we add the URL's origin and the filename/line combination (the 'at')
 	// to the Linter's State so that we can add it to PreviousOrigins when we're done
 	// processing the stanza.
-	l.State.URLOrigin = fmt.Sprintf("%v://%v", parsedURL.Scheme, parsedURL.Host)
+	l.State.URLOrigin = originFromURL(parsedURL)
 	l.State.URLAt = at
 	originSeenAt, originSeen := l.PreviousOrigins[l.State.URLOrigin]
 	if originSeen {
 		m = append(m, fmt.Sprintf("Origin already seen at %q (L2002)", originSeenAt))
 	}
 	return m
+}
+
+// originFromURL returns the scheme://hostname:port used to compare starting point origins.
+// The host is lowercased so Example.COM and example.com are the same origin.
+func originFromURL(u *url.URL) string {
+	scheme := strings.ToLower(u.Scheme)
+	host := strings.ToLower(u.Host)
+
+	// When a URL has a port defined, it will be included in u.Host, so return early.
+	if u.Port() != "" {
+		return scheme + "://" + host
+	}
+
+	// Explicitly include default ports.
+	port := "80"
+	if scheme == schemeHTTPS {
+		port = "443"
+	}
+
+	return scheme + "://" + host + ":" + port
 }
 
 func FindURLFromLine(line string) string {
@@ -849,7 +871,7 @@ func processSourceLine(sourceLine string) (string, string, error) {
 	if err != nil {
 		return "", "", err
 	}
-	if parsedSourceURL.Scheme != "https" {
+	if parsedSourceURL.Scheme != schemeHTTPS {
 		return "", "", errors.New("source line isn't using https")
 	}
 	if parsedSourceURL.Host != "help.oclc.org" {

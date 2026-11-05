@@ -1,0 +1,1 @@
+testdata/invalid_origins/CaseInsensitiveAcrossStanzas.txt:6: URL http://example.com/other ← Origin already seen at "testdata/invalid_origins/CaseInsensitiveAcrossStanzas.txt:3" (L2002)
