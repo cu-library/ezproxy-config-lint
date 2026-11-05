@@ -117,9 +117,6 @@ func (l *Linter) ProcessFile(filePath string) (warningCount int, err error) {
 	// Store the line number for output.
 	lineNum := 0
 
-	// Store information about each stanza.
-	l.State = State{}
-
 	// Loop through each line in the file.
 	for {
 		// This hacky section is here to handle
@@ -176,7 +173,7 @@ func (l *Linter) ProcessFile(filePath string) (warningCount int, err error) {
 		}
 
 		// Follow IncludeFile paths recursively.
-		if l.FollowIncludeFile && l.State.Previous == IncludeFile {
+		if l.FollowIncludeFile && l.State.Current == IncludeFile {
 			splitLine := strings.Split(line, " ")
 			if len(splitLine) < 2 {
 				return warningCount, fmt.Errorf("unable to find IncludeFile path on line %q", line)
@@ -366,6 +363,11 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 		m = append(m, l.ProcessOptionOpener(line)...)
 	} else if slices.Contains(closers, directive) {
 		m = append(m, l.ProcessOptionCloser(line)...)
+	}
+
+	// Process IncludeFile directive.
+	if directive == IncludeFile {
+		return m
 	}
 
 	// Process other directives.
