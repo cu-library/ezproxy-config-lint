@@ -25,17 +25,29 @@ const (
 var version = "devel"
 
 func main() {
-	annotate := flag.Bool("annotate", false, "Print all lines, not just lines that create warnings.")
-	verbose := flag.Bool("verbose", false, "Print internal state before each line is processed.")
-	additionalPHEChecks := flag.Bool("phe", false, "Perform additional checks on ProxyHostnameEdit directives.")
-	directiveCase := flag.Bool("case", false, "Report on directives having the wrong case.")
-	https := flag.Bool("https", false, "Report on URL directives which do not use the HTTPS scheme.")
-	origins := flag.Bool("origins", false, "Report on duplicate origins in H or HJ directives within a stanza.")
-	source := flag.Bool("source", true, "Use source comments to check against OCLC stanzas.")
-	whitespace := flag.Bool("whitespace", false, "Report on trailing space or tab characters.")
-	followIncludeFile := flag.Bool("follow-includefile", true, "Also process files referenced by IncludeFile directives.")
-	includeFileDirectory := flag.String("includefile-directory", "", "The directory from which the IncludeFile paths will be resolved. "+
-		"By default, IncludeFile paths are resolved from the parent directory of each of the file arguments, unless they are absolute paths.")
+	config := linter.DefaultConfig()
+	flag.BoolVar(&config.Annotate, "annotate", config.Annotate,
+		"Print all lines, not just lines that create warnings.")
+	flag.BoolVar(&config.Verbose, "verbose", config.Verbose,
+		"Print internal state before each line is processed.")
+	flag.BoolVar(&config.AdditionalPHEChecks, "phe", config.AdditionalPHEChecks,
+		"Perform additional checks on ProxyHostnameEdit directives.")
+	flag.BoolVar(&config.DirectiveCase, "case", config.DirectiveCase,
+		"Report on directives having the wrong case.")
+	flag.BoolVar(&config.HTTPS, "https", config.HTTPS,
+		"Report on URL directives which do not use the HTTPS scheme.")
+	flag.BoolVar(&config.Origins, "origins", config.Origins,
+		"Report on duplicate origins in H or HJ directives within a stanza.")
+	flag.BoolVar(&config.Source, "source", config.Source,
+		"Use source comments to check against OCLC stanzas.")
+	flag.BoolVar(&config.Whitespace, "whitespace", config.Whitespace,
+		"Report on trailing space or tab characters.")
+	flag.BoolVar(&config.FollowIncludeFile, "follow-includefile", config.FollowIncludeFile,
+		"Also process files referenced by IncludeFile directives.")
+	flag.StringVar(&config.IncludeFileDirectory, "includefile-directory", config.IncludeFileDirectory,
+		"The directory from which the IncludeFile paths will be resolved. "+
+			"By default, IncludeFile paths are resolved from the parent directory "+
+			"of each of the file arguments, unless they are absolute paths.")
 	flag.Usage = func() {
 		fmt.Fprint(flag.CommandLine.Output(), "ezproxy-config-lint: Lint config files for EZproxy\n")
 		fmt.Fprintf(flag.CommandLine.Output(), "  Version %v\n", version)
@@ -51,23 +63,8 @@ func main() {
 	// Set the logger to not include timestamp.
 	log.SetFlags(0)
 
-	// Create a Linter struct to hold configuration options.
-	linter := &linter.Linter{
-		Annotate:             *annotate,
-		Verbose:              *verbose,
-		AdditionalPHEChecks:  *additionalPHEChecks,
-		DirectiveCase:        *directiveCase,
-		HTTPS:                *https,
-		Origins:              *origins,
-		Source:               *source,
-		Whitespace:           *whitespace,
-		FollowIncludeFile:    *followIncludeFile,
-		IncludeFileDirectory: *includeFileDirectory,
-		Output:               os.Stdout,
-	}
-
+	linter := linter.NewLinter(config)
 	warningCount := 0
-
 	for _, arg := range flag.Args() {
 		fileWarningCount, err := linter.ProcessFile(arg)
 		if err != nil {
@@ -75,19 +72,6 @@ func main() {
 			os.Exit(Error)
 		}
 		warningCount += fileWarningCount
-		// ProcessFile() recursively processes files referenced
-		// by IncludeFile directives.
-		// If includeFileDirectory is not set by a CLI option,
-		// ProcessFile() will set the linter's IncludeFileDirectory
-		// to the parent directory of the first file is processes.
-		// That is done because IncludeFile directives are processed
-		// as though they were in the file that was processed first.
-		// There might be multiple files passed as CLI arguments,
-		// which might not be in the same parent directory.
-		// The IncludeFileDirectory is reset here so that it does not
-		// potentially remain set to the parent directory of the first
-		// filePath in the argument list.
-		linter.IncludeFileDirectory = *includeFileDirectory
 	}
 
 	if warningCount > 0 {

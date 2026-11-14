@@ -34,7 +34,29 @@ const (
 	schemeHTTPS = "https"
 )
 
-type State struct {
+type Config struct {
+	Annotate             bool
+	Verbose              bool
+	AdditionalPHEChecks  bool
+	DirectiveCase        bool
+	HTTPS                bool
+	Origins              bool
+	Source               bool
+	Whitespace           bool
+	FollowIncludeFile    bool
+	IncludeFileDirectory string
+	Output               io.Writer
+}
+
+func DefaultConfig() Config {
+	return Config{
+		FollowIncludeFile: true,
+		Output:            os.Stdout,
+		Source:            true,
+	}
+}
+
+type state struct {
 	AddUserHeaderNeedsClosing bool
 	AnonymousURLNeedsClosing  bool
 	OpenOptions               []Directive
@@ -55,21 +77,27 @@ type State struct {
 	StanzaOrigins             map[string]string
 }
 
-type Linter struct {
-	Annotate             bool
-	Verbose              bool
-	AdditionalPHEChecks  bool
-	DirectiveCase        bool
-	HTTPS                bool
-	Origins              bool
-	Source               bool
-	Whitespace           bool
-	FollowIncludeFile    bool
-	IncludeFileDirectory string
-	State                State
-	Output               io.Writer
-	PreviousTitles       map[string]string
-	PreviousOrigins      map[string]string
+func NewState() *state {
+	return &state{
+		ProxyHostnameEditPatterns: make(map[string]*regexp.Regexp),
+		StanzaOrigins:             make(map[string]string),
+	}
+}
+
+type linter struct {
+	Config
+	State           *state
+	PreviousTitles  map[string]string
+	PreviousOrigins map[string]string
+}
+
+func NewLinter(c Config) *linter {
+	return &linter{
+		Config:          c,
+		State:           NewState(),
+		PreviousTitles:  make(map[string]string),
+		PreviousOrigins: make(map[string]string),
+	}
 }
 
 func OptionPairs() map[Directive]Directive {
@@ -100,18 +128,33 @@ var (
 	URLV3Regex = regexp.MustCompile(`(?i)^U(RL)?\s+(-Form)=([A-Za-z]+ )\s*(-RewriteHost )?\s*(\S+)\s+(\S+)$`)
 )
 
-func (l *Linter) ProcessFile(filePath string) (warningCount int, err error) {
+func (l *linter) ProcessFile(filePath string) (warningCount int, err error) {
+	// IncludeFileDirectory is where files processed using the
+	// IncludeFile directive are found.
+	// This directory is set to the parent directory of the file
+	// at the 'root' of the potentially recursive linting process.
+	includeFileDirectory := filepath.Dir(filePath)
+
+	// ...unless a different path was set by the caller in config.
+	if l.IncludeFileDirectory != "" {
+		includeFileDirectory = l.IncludeFileDirectory
+	}
+
+	// Here, we call the private processFile() function.
+	// If FollowIncludeFile is true and files use the IncludeFile directive,
+	// it calls itself recursively to lint the tree of included files.
+	// During those recursive calls, includeFileDirectory
+	// is preserved, and relative IncludeFile directive file paths
+	// are always joined with the same includeFileDirectory.
+	return l.processFile(filePath, includeFileDirectory)
+}
+
+func (l *linter) processFile(filePath, includeFileDirectory string) (warningCount int, err error) {
 	f, err := os.Open(filePath)
 	if err != nil {
 		return warningCount, err
 	}
 	defer f.Close()
-
-	// If the IncludeFileDirectory was not set by the caller,
-	// use the parent directory of first file the linter processes.
-	if l.IncludeFileDirectory == "" {
-		l.IncludeFileDirectory = filepath.Dir(filePath)
-	}
 
 	// Make a scanner to go through the file line by line.
 	scanner := newScanner(f)
@@ -185,7 +228,7 @@ func (l *Linter) ProcessFile(filePath string) (warningCount int, err error) {
 			// join it with the IncludeFileDirectory, which has been set by the caller
 			// or to the parent directory of the first file the linter processed.
 			if !filepath.IsAbs(includeFilePath) {
-				includeFilePath = filepath.Join(l.IncludeFileDirectory, includeFilePath)
+				includeFilePath = filepath.Join(includeFileDirectory, includeFilePath)
 				if l.Verbose {
 					fmt.Fprintf(l.Output, "       Line: %v\n", line)
 					fmt.Fprintf(l.Output, "    in file: %v\n", filePath)
@@ -193,7 +236,7 @@ func (l *Linter) ProcessFile(filePath string) (warningCount int, err error) {
 				}
 			}
 
-			includeFileWarningCount, err := l.ProcessFile(includeFilePath)
+			includeFileWarningCount, err := l.processFile(includeFilePath, includeFileDirectory)
 			if err != nil {
 				fmt.Fprintf(l.Output, "Error encountered when processing line %q.\n", line)
 				return warningCount, err
@@ -209,25 +252,11 @@ func (l *Linter) ProcessFile(filePath string) (warningCount int, err error) {
 	return warningCount, nil
 }
 
-func (l *Linter) ProcessLineAt(line, at string) (m []string) {
+func (l *linter) ProcessLineAt(line, at string) (m []string) {
 	// Get the OptionPairs which need to be closed.
 	optionPairs := OptionPairs()
 	openers := OpenerOptions()
 	closers := CloserOptions()
-
-	// Initialize maps if they are still nil.
-	if l.PreviousTitles == nil {
-		l.PreviousTitles = make(map[string]string)
-	}
-	if l.PreviousOrigins == nil {
-		l.PreviousOrigins = make(map[string]string)
-	}
-	if l.State.ProxyHostnameEditPatterns == nil {
-		l.State.ProxyHostnameEditPatterns = make(map[string]*regexp.Regexp)
-	}
-	if l.State.StanzaOrigins == nil {
-		l.State.StanzaOrigins = make(map[string]string)
-	}
 
 	// Does the line end in a space or tab character?
 	if l.Whitespace && TrailingSpaceOrTabCheck(line) {
@@ -268,7 +297,8 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 		maps.Copy(l.PreviousOrigins, l.State.StanzaOrigins)
 
 		// Reset the stanza state.
-		l.State = State{LastLineEmpty: true}
+		l.State = NewState()
+		l.State.LastLineEmpty = true
 
 		return m
 	}
@@ -356,7 +386,7 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 		}
 		if returnEarly {
 			l.State.Previous = OptionCookie
-			return
+			return m
 		}
 	}
 
@@ -396,7 +426,7 @@ func (l *Linter) ProcessLineAt(line, at string) (m []string) {
 }
 
 // ProcessOptionOpener processes the line containing an Option which will need to be closed later.
-func (l *Linter) ProcessOptionOpener(line string) (m []string) {
+func (l *linter) ProcessOptionOpener(line string) (m []string) {
 	allowedPreviousDirectives := []Directive{
 		Undefined,
 		Group,
@@ -426,7 +456,7 @@ func (l *Linter) ProcessOptionOpener(line string) (m []string) {
 }
 
 // ProcessOptionCloser processes the line containing an Option which closes an 'Opener' option.
-func (l *Linter) ProcessOptionCloser(line string) (m []string) {
+func (l *linter) ProcessOptionCloser(line string) (m []string) {
 	optionPairs := OptionPairs()
 	allowedPreviousDirectives := []Directive{
 		DbVar,
@@ -453,7 +483,7 @@ func (l *Linter) ProcessOptionCloser(line string) (m []string) {
 // ProcessProxyHostnameEdit processes the line containing the ProxyHostnameEdit directive.
 // OCLC documentation:
 // https://help.oclc.org/Library_Management/EZproxy/Configure_resources/ProxyHostnameEdit
-func (l *Linter) ProcessProxyHostnameEdit(line string) (m []string) {
+func (l *linter) ProcessProxyHostnameEdit(line string) (m []string) {
 	allowedPreviousDirectives := []Directive{
 		Undefined,
 		Group,
@@ -513,7 +543,7 @@ func (l *Linter) ProcessProxyHostnameEdit(line string) (m []string) {
 // ProcessAddUserHeader processes the line containing the AddUserHeader directive.
 // OCLC documentation:
 // https://help.oclc.org/Library_Management/EZproxy/Configure_resources/AddUserHeader
-func (l *Linter) ProcessAddUserHeader(line string) (m []string) {
+func (l *linter) ProcessAddUserHeader(line string) (m []string) {
 	if TrimLabel(line, l.State.Label) == "" {
 		allowedPreviousDirectives := []Directive{
 			URL,
@@ -564,7 +594,7 @@ func (l *Linter) ProcessAddUserHeader(line string) (m []string) {
 // ProcessAnonymousURL processes the line containing the AnonymousURL directive.
 // OCLC documentation:
 // https://help.oclc.org/Library_Management/EZproxy/Configure_resources/AnonymousURL
-func (l *Linter) ProcessAnonymousURL(line string) (m []string) {
+func (l *linter) ProcessAnonymousURL(line string) (m []string) {
 	if TrimLabel(line, l.State.Label) == "-*" {
 		allowedPreviousDirectives := []Directive{
 			URL,
@@ -614,7 +644,7 @@ func (l *Linter) ProcessAnonymousURL(line string) (m []string) {
 // ProcessTitle processes the line containing the Title directive.
 // OCLC documentation:
 // https://help.oclc.org/Library_Management/EZproxy/Configure_resources/Title
-func (l *Linter) ProcessTitle(line, at string) (m []string) {
+func (l *linter) ProcessTitle(line, at string) (m []string) {
 	allowedPreviousDirectives := []Directive{
 		Undefined,
 		Group,
@@ -668,7 +698,7 @@ func (l *Linter) ProcessTitle(line, at string) (m []string) {
 // ProcessDescription processes the line containing a description directive.
 // OCLC documention:
 // https://help.oclc.org/Library_Management/EZproxy/Configure_resources/Description
-func (l *Linter) ProcessDescription(line, at string) (m []string) {
+func (l *linter) ProcessDescription(line, at string) (m []string) {
 	allowedPreviousDirectives := []Directive{
 		Title,
 		Description,
@@ -688,7 +718,7 @@ func (l *Linter) ProcessDescription(line, at string) (m []string) {
 // OCLC documentation:
 // https://help.oclc.org/Library_Management/EZproxy/Configure_resources/Host_H
 // https://help.oclc.org/Library_Management/EZproxy/Configure_resources/HostJavaScript_HJ
-func (l *Linter) ProcessHostAndHostJavaScript(line, at string) (m []string) {
+func (l *linter) ProcessHostAndHostJavaScript(line, at string) (m []string) {
 	trimmed := TrimLabel(line, l.State.Label)
 	parsedURL, err := url.Parse(trimmed)
 	if err != nil {
@@ -726,7 +756,7 @@ func (l *Linter) ProcessHostAndHostJavaScript(line, at string) (m []string) {
 // OCLC documentation:
 // https://help.oclc.org/Library_Management/EZproxy/Configure_resources/Domain_D
 // https://help.oclc.org/Library_Management/EZproxy/Configure_resources/DomainJavaScript_DJ
-func (l *Linter) ProcessDomainAndDomainJavaScript(line string) (m []string) {
+func (l *linter) ProcessDomainAndDomainJavaScript(line string) (m []string) {
 	parsedURL, err := url.Parse(TrimLabel(line, l.State.Label))
 	if err != nil {
 		m = append(m, fmt.Sprintf("Unable to parse URL, might be malformed: %v (L3005)", err))
@@ -743,7 +773,7 @@ func (l *Linter) ProcessDomainAndDomainJavaScript(line string) (m []string) {
 // https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_1
 // https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_2
 // https://help.oclc.org/Library_Management/EZproxy/Configure_resources/URL_version_3
-func (l *Linter) ProcessURL(line, at string) (m []string) {
+func (l *linter) ProcessURL(line, at string) (m []string) {
 	allowedPreviousDirectives := []Directive{
 		AllowVars,
 		ByteServe,
@@ -789,7 +819,7 @@ func (l *Linter) ProcessURL(line, at string) (m []string) {
 	// So many stanzas duplicate the URL in an HJ or H line that adding the URL's
 	// origin to PreviousOrigins would add a lot of noise to the output.
 	// Instead, we add the URL's origin and the filename/line combination (the 'at')
-	// to the Linter's State so that we can add it to PreviousOrigins when we're done
+	// to the linter's State so that we can add it to PreviousOrigins when we're done
 	// processing the stanza.
 	l.State.URLOrigin = originFromURL(parsedURL)
 	l.State.URLAt = at

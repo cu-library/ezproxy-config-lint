@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"flag"
-	"io"
 	"os"
 	"path/filepath"
 	"testing"
@@ -13,11 +12,6 @@ import (
 )
 
 var update = flag.Bool("update", false, "Update golden testdata fixtures") //nolint:gochecknoglobals
-
-func NewLinter() *linter.Linter {
-	l := &linter.Linter{Output: io.Discard, FollowIncludeFile: true}
-	return l
-}
 
 type testOpts struct {
 	Name    string
@@ -59,14 +53,16 @@ func runDataFileTest(t *testing.T, o testOpts) {
 	}
 
 	for _, f := range dirContent {
-		l := NewLinter()
-		l.DirectiveCase = o.Case
-		l.HTTPS = o.HTTPS
-		l.Origins = o.Origins
-		l.AdditionalPHEChecks = o.PHE
-
 		buf := bytes.NewBuffer(nil)
-		l.Output = buf
+		config := linter.Config{
+			Output:              buf,
+			FollowIncludeFile:   true,
+			AdditionalPHEChecks: o.PHE,
+			DirectiveCase:       o.Case,
+			HTTPS:               o.HTTPS,
+			Origins:             o.Origins,
+		}
+		l := linter.NewLinter(config)
 
 		warningCount, err := l.ProcessFile(f)
 
