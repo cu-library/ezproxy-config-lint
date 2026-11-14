@@ -25,6 +25,8 @@ import (
 	"golang.org/x/net/html"
 )
 
+var ErrAlreadyProcessed = errors.New("files can only be included once")
+
 const (
 	DefaultBufferSize = 1 * 1024 * 1024        // 1 MiB, the default size when creating a buffer for a scanner.
 	MaxBufferSize     = 5 * 1024 * 1024        // 5 MiB, the maximum size the scanner buffers can grow to.
@@ -87,6 +89,7 @@ func NewState() *state {
 type linter struct {
 	Config
 	State           *state
+	PreviousFiles   map[string]struct{}
 	PreviousTitles  map[string]string
 	PreviousOrigins map[string]string
 }
@@ -95,6 +98,7 @@ func NewLinter(c Config) *linter {
 	return &linter{
 		Config:          c,
 		State:           NewState(),
+		PreviousFiles:   make(map[string]struct{}),
 		PreviousTitles:  make(map[string]string),
 		PreviousOrigins: make(map[string]string),
 	}
@@ -150,6 +154,17 @@ func (l *linter) ProcessFile(filePath string) (warningCount int, err error) {
 }
 
 func (l *linter) processFile(filePath, includeFileDirectory string) (warningCount int, err error) {
+	// To avoid infinite loops, check to see if this file has been processed before.
+	filePathAbs, err := filepath.Abs(filePath)
+	if err != nil {
+		return warningCount, err
+	}
+	_, found := l.PreviousFiles[filePathAbs]
+	if found {
+		return warningCount, fmt.Errorf("%w: %s", ErrAlreadyProcessed, filePath)
+	}
+	l.PreviousFiles[filePathAbs] = struct{}{}
+
 	f, err := os.Open(filePath)
 	if err != nil {
 		return warningCount, err
@@ -238,8 +253,7 @@ func (l *linter) processFile(filePath, includeFileDirectory string) (warningCoun
 
 			includeFileWarningCount, err := l.processFile(includeFilePath, includeFileDirectory)
 			if err != nil {
-				fmt.Fprintf(l.Output, "Error encountered when processing line %q.\n", line)
-				return warningCount, err
+				return warningCount, fmt.Errorf("error processing IncludeFile path on line %q: %w", line, err)
 			}
 			warningCount += includeFileWarningCount
 		}

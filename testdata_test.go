@@ -14,22 +14,24 @@ import (
 var update = flag.Bool("update", false, "Update golden testdata fixtures") //nolint:gochecknoglobals
 
 type testOpts struct {
-	Name    string
-	Case    bool
-	Fail    bool
-	HTTPS   bool
-	Origins bool
-	PHE     bool
+	Name     string
+	Case     bool
+	Error    bool
+	Warnings bool
+	HTTPS    bool
+	Origins  bool
+	PHE      bool
 }
 
 func TestDataFiles(t *testing.T) {
 	opts := []testOpts{
 		{Name: "valid"},
-		{Name: "invalid", Fail: true},
-		{Name: "invalid_case", Fail: true, Case: true},
-		{Name: "invalid_https", Fail: true, HTTPS: true},
-		{Name: "invalid_origins", Fail: true, Origins: true},
-		{Name: "invalid_phe", Fail: true, PHE: true},
+		{Name: "error", Error: true},
+		{Name: "invalid", Warnings: true},
+		{Name: "invalid_case", Warnings: true, Case: true},
+		{Name: "invalid_https", Warnings: true, HTTPS: true},
+		{Name: "invalid_origins", Warnings: true, Origins: true},
+		{Name: "invalid_phe", Warnings: true, PHE: true},
 	}
 
 	// Disable colors for these tests.
@@ -66,7 +68,17 @@ func runDataFileTest(t *testing.T, o testOpts) {
 
 		warningCount, err := l.ProcessFile(f)
 
-		if o.Fail {
+		if o.Error { //nolint:gocritic
+			if err == nil {
+				t.Errorf("Unexpected success on file which should cause error: %s", f)
+				continue
+			}
+		} else if o.Warnings {
+			if err != nil {
+				t.Errorf("Unexpected error on file which should only cause warnings: %s", f)
+				continue
+			}
+
 			golden := f + ".golden"
 			if *update {
 				err := os.WriteFile(golden, buf.Bytes(), 0644) //nolint:gosec
@@ -81,7 +93,7 @@ func runDataFileTest(t *testing.T, o testOpts) {
 				continue
 			}
 
-			if err == nil && warningCount == 0 {
+			if warningCount == 0 {
 				t.Errorf("Unexpected success on invalid file: %s\nwant:\n%s", f, expected)
 				continue
 			}
@@ -89,6 +101,7 @@ func runDataFileTest(t *testing.T, o testOpts) {
 			// Verify that the output matches the golden fixture.
 			if !bytes.Equal(buf.Bytes(), expected) {
 				t.Errorf("Results did not match golden fixture:\nwant:\n%s\ngot:\n%s", string(expected), buf.String())
+				continue
 			}
 		} else if err != nil || warningCount != 0 {
 			t.Errorf("Unexpected error on valid file: %s\n%s", f, buf.String())
