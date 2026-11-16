@@ -368,7 +368,7 @@ var LabelToDirective = map[string]Directive{ //nolint:gochecknoglobals
 	"U":                                                                            URL,
 	"UMask":                                                                        UMask,
 	"URL":                                                                          URL,
-	"URLAppendEncoded ":                                                            URLAppendEncoded,
+	"URLAppendEncoded":                                                             URLAppendEncoded,
 	"URLRedirect":                                                                  URLRedirect,
 	"URLRedirectAppend":                                                            URLRedirectAppend,
 	"URLRedirectAppendEncoded":                                                     URLRedirectAppendEncoded,
