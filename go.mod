@@ -1,4 +1,4 @@
-module github.com/cu-library/ezproxy-config-lint/v4
+module github.com/cu-library/ezproxy-config-lint/v5
 
 go 1.26.0
 
