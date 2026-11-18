@@ -1,0 +1,26 @@
+Title Naxos VideoLibrary
+URL https://test.naxosvideolibrary.com
+HJ test.naxosvideolibrary.com
+HJ https://test.naxosvideolibrary.com
+HJ https://www.naxosvideolibrary.com
+HJ www.naxosvideolibrary.com
+DJ naxosvideolibrary.com
+NeverProxy 80audiostream.naxosmusiclibrary.com
+NeverProxy audiostream.naxosmusiclibrary.com
+NeverProxy cdn.naxos.com
+NeverProxy cdn.naxosmusiclibrary.com
+NeverProxy cdn.naxosvideolibrary.com
+NeverProxy cdn2.naxos.com
+NeverProxy cp82361.edgefcs.net
+NeverProxy videostream-api.naxosvideolibrary.com
+NeverProxy videostream.naxosmusiclibrary.com
+NeverProxy videostream.naxosvideolibrary.com
+NeverProxy videostream2.naxosvideolibrary.com
+Find setTimeout("window.close();",1000);
+Replace setTimeout("window.close();",10000);
+AnonymousURL +/NVL_
+AnonymousURL +.wm
+AnonymousURL +.wma
+AnonymousURL +/stream_play.asp?
+AnonymousURL +/stream_play_mac.asp?
+AnonymousURL -*
