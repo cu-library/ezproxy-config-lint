@@ -130,6 +130,14 @@ func TestUnknownDirective(t *testing.T) {
 	}
 }
 
+func TestLabelToDirectiveKeysHaveNoTrailingSpace(t *testing.T) {
+	for label := range LabelToDirective {
+		if strings.HasSuffix(label, " ") {
+			t.Errorf("LabelToDirective key %q has a trailing space", label)
+		}
+	}
+}
+
 func TestFindURLFromLine(t *testing.T) {
 	var tests = []struct {
 		line     string
