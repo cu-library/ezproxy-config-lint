@@ -619,6 +619,7 @@ func (l *linter) ProcessAnonymousURL(line string) (m []string) {
 			Replace,
 			AddUserHeader,
 			NeverProxy,
+			AnonymousURL,
 		}
 		allowedPreviousDirectives = append(allowedPreviousDirectives, CloserOptions()...)
 		if !slices.Contains(allowedPreviousDirectives, l.State.Previous) {
@@ -645,6 +646,14 @@ func (l *linter) ProcessAnonymousURL(line string) (m []string) {
 			AddUserHeader,
 			AnonymousURL,
 			ProxyHostnameEdit,
+			URL,
+			Host,
+			HostJavaScript,
+			Domain,
+			DomainJavaScript,
+			Replace,
+			AddUserHeader,
+			NeverProxy,
 		}
 		allowedPreviousDirectives = append(allowedPreviousDirectives, OpenerOptions()...)
 		if !slices.Contains(allowedPreviousDirectives, l.State.Previous) {

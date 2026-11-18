@@ -112,6 +112,7 @@ The `AnonymousURL -*` directive is only allowed to follow these directives:
 * `Replace`
 * `AddUserHeader`
 * `NeverProxy`
+* `AnonymousURL`
 * `Option Cookie`
 * `Option NoHideEZproxy`
 * `Option HttpsHyphens`
@@ -145,6 +146,15 @@ the `AnonymousURL` directive is only allowed to follow these directives:
 * `AddUserHeader`
 * `AnonymousURL`
 * `ProxyHostnameEdit`
+* `URL`
+* `Host`
+* `HostJavaScript`
+* `Domain`
+* `DomainJavaScript`
+* `Replace`
+* `AddUserHeader`
+* `NeverProxy`
+* `AnonymousURL`
 * `Option DomainCookieOnly`
 * `Option NoCookie`
 * `Option CookiePassThrough`
