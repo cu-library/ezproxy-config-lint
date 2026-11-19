@@ -5,10 +5,35 @@
 package linter
 
 import (
+	"io"
+	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
 )
+
+func TestProcessFileFollowsNestedIncludeAfterComment(t *testing.T) {
+	dir := t.TempDir()
+	for name, content := range map[string]string{
+		"root.txt":   "IncludeFile child.txt\n",
+		"child.txt":  "# See Issue #61\nIncludeFile nested.txt\n",
+		"nested.txt": "UnknownDirective value\n",
+	} {
+		if err := os.WriteFile(filepath.Join(dir, name), []byte(content), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	l := NewLinter(Config{FollowIncludeFile: true, Output: io.Discard})
+	warnings, err := l.ProcessFile(filepath.Join(dir, "root.txt"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if warnings != 1 {
+		t.Fatalf("got %d warnings, want 1 from nested.txt", warnings)
+	}
+}
 
 func TestLineEndingInSpace(t *testing.T) {
 	config := Config{Whitespace: true}

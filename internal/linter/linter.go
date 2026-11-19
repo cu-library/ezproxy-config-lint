@@ -253,6 +253,8 @@ func (l *linter) processFile(filePath, includeFileDirectory string) (warningCoun
 }
 
 func (l *linter) ProcessLineAt(line, at string) (m []string) {
+	l.State.Current = Undefined
+
 	// Does the line end in a space or tab character?
 	if l.Whitespace && TrailingSpaceOrTabCheck(line) {
 		m = append(m, "Line ends in a space or tab character (L5002)")
