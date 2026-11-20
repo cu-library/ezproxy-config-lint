@@ -19,6 +19,7 @@ import (
 	"regexp"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/fatih/color"
@@ -158,7 +159,8 @@ func (l *linter) processFile(filePath, includeFileDirectory string) (warningCoun
 	defer f.Close()
 
 	// Make a scanner to go through the file line by line.
-	scanner := newScanner(f)
+	scanner, release := newScanner(f)
+	defer release()
 
 	// Store the line number for output.
 	lineNum := 0
@@ -713,14 +715,20 @@ func TrimDirective(line string, directiveToTrim Directive) string {
 	return strings.TrimSpace(line)
 }
 
-func newScanner(r io.Reader) *bufio.Scanner {
-	// Preallocate a buffer for the scanner.
-	buf := make([]byte, DefaultBufferSize)
-	// Make a scanner to go through the reader r line by line.
+var scannerBuffers = sync.Pool{ //nolint:gochecknoglobals
+	New: func() any {
+		buf := make([]byte, DefaultBufferSize)
+		return &buf
+	},
+}
+
+// newScanner borrows an initial buffer. Call release exactly once after the
+// last use of the scanner, including on errors and early termination.
+func newScanner(r io.Reader) (*bufio.Scanner, func()) {
+	buf := scannerBuffers.Get().(*[]byte)
 	scanner := bufio.NewScanner(r)
-	// Use the buffer to store each line. The buffer can grow if needed.
-	scanner.Buffer(buf, MaxBufferSize)
-	return scanner
+	scanner.Buffer(*buf, MaxBufferSize)
+	return scanner, func() { scannerBuffers.Put(buf) }
 }
 
 func processSourceLine(sourceLine string) (string, string, error) {
@@ -761,7 +769,7 @@ func processSourceLine(sourceLine string) (string, string, error) {
 	f = func(n *html.Node) {
 		if n.Type == html.ElementNode && n.Data == "pre" {
 			if n.FirstChild != nil && n.FirstChild.Type == html.TextNode {
-				scanner := newScanner(strings.NewReader(n.FirstChild.Data))
+				scanner, release := newScanner(strings.NewReader(n.FirstChild.Data))
 				for scanner.Scan() {
 					line := scanner.Text()
 					if strings.HasPrefix(line, "Title ") || strings.HasPrefix(line, "T ") {
@@ -772,6 +780,7 @@ func processSourceLine(sourceLine string) (string, string, error) {
 				if err := scanner.Err(); err != nil {
 					log.Printf("Error scanning OCLC stanza source: %v\n", err)
 				}
+				release()
 			}
 		}
 		for c := n.FirstChild; c != nil && oclcTitle == ""; c = c.NextSibling {
