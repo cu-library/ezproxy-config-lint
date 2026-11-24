@@ -466,10 +466,15 @@ func (l *linter) ProcessProxyHostnameEdit(line string) (m []string) {
 			m = append(m, "Replace part of \"ProxyHostnameEdit\" directive is malformed (L3003)")
 		}
 
+		matchedPatterns := make([]string, 0, len(l.State.ProxyHostnameEditPatterns))
 		for pattern, re := range l.State.ProxyHostnameEditPatterns {
 			if re.MatchString(find) {
-				m = append(m, fmt.Sprintf("\"ProxyHostnameEdit\" domains should be placed in deepest-to-shallowest order, previous pattern: %q (L1009)", pattern))
+				matchedPatterns = append(matchedPatterns, pattern)
 			}
+		}
+		slices.Sort(matchedPatterns)
+		for _, pattern := range matchedPatterns {
+			m = append(m, fmt.Sprintf("\"ProxyHostnameEdit\" domains should be placed in deepest-to-shallowest order, previous pattern: %q (L1009)", pattern))
 		}
 
 		// For every pattern we see, create a regexp to match any subdomains.

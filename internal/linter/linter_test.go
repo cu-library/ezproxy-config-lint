@@ -5,10 +5,12 @@
 package linter
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -294,6 +296,24 @@ func TestTrimLabel(t *testing.T) {
 		result := TrimLabel(tt.line, tt.label)
 		if result != tt.expected {
 			t.Fatalf("TrimLabel() fails on %q, wanted %q, got %q.\n", tt.line, tt.expected, result)
+		}
+	}
+}
+
+func TestProxyHostnameEditWarningOrder(t *testing.T) {
+	const warning = `"ProxyHostnameEdit" domains should be placed in deepest-to-shallowest order, previous pattern: %q (L1009)`
+	want := []string{fmt.Sprintf(warning, "a.example"), fmt.Sprintf(warning, "example")}
+
+	// Do up to 32 rounds to ensure we get the same order each time.
+	// Should catch any use of a map with random key sorting.
+	for run := range 32 {
+		lint := NewLinter(Config{AdditionalPHEChecks: true})
+		// Insert the matching patterns in reverse lexical order.
+		lint.ProcessLineAt("ProxyHostnameEdit example$ example", "test:1")
+		lint.ProcessLineAt("ProxyHostnameEdit a.example$ a-example", "test:2")
+		got := lint.ProcessLineAt("ProxyHostnameEdit x.a.example$ x-a-example", "test:3")
+		if !slices.Equal(got, want) {
+			t.Fatalf("run %d, third line: got %q, want %q", run+1, got, want)
 		}
 	}
 }
