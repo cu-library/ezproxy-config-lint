@@ -286,6 +286,9 @@ func (l *linter) ProcessLineAt(line, at string) (m []string) {
 					"corresponding %q line at the end of the stanza (L4002)", l.State.Title, option, optionPairs[option]))
 			}
 		}
+		if l.State.Previous == Find {
+			m = append(m, "\"Find\" directive must be immediately proceeded by a \"Replace\" directive (L4004)")
+		}
 
 		// If present, add the stored URL origin to the PreviousOrigins map.
 		if l.State.URLOrigin != "" {
