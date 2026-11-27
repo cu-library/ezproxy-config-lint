@@ -14,8 +14,6 @@ import (
 	"github.com/cu-library/ezproxy-config-lint/v5/internal/linter"
 )
 
-type ExitCode int
-
 const (
 	Failure = iota + 1 // Linting was successful, and issues were found.
 	Error              // Linting was unsuccessful.
@@ -62,6 +60,12 @@ func main() {
 
 	// Set the logger to not include timestamp.
 	log.SetFlags(0)
+
+	// Exit if no config files were passed as arguments.
+	if flag.NArg() < 1 {
+		flag.Usage()
+		os.Exit(Error)
+	}
 
 	linter := linter.NewLinter(config)
 	warningCount := 0
