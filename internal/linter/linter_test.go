@@ -138,6 +138,25 @@ func TestFindReplacePair(t *testing.T) {
 	}
 }
 
+func TestUnmatchedFindAtStanzaEnd(t *testing.T) {
+	for _, sep := range []string{"", "#"} {
+		l := NewLinter(Config{})
+		var got []string
+		for _, line := range []string{"Title Example", "URL https://example.com", "Find foo", sep} {
+			got = append(got, l.ProcessLineAt(line, "test:1")...)
+		}
+		found := false
+		for _, m := range got {
+			if strings.Contains(m, "L4004") {
+				found = true
+			}
+		}
+		if !found {
+			t.Errorf("separator %q: expected L4004, got %q", sep, got)
+		}
+	}
+}
+
 func TestMisstyledDirective(t *testing.T) {
 	config := Config{DirectiveCase: true}
 	linter := NewLinter(config)
